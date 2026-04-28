@@ -19,6 +19,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Controlador REST para consultar el registro de auditoría del sistema.
+ *
+ * <p>Permite a los administradores revisar todas las acciones realizadas en el sistema,
+ * filtrar por usuario, tipo de entidad, acción y rango de fechas, y exportar los
+ * resultados a Excel.</p>
+ *
+ * <p>Acceso restringido: solo usuarios con rol {@code ADMIN}.</p>
+ * <p>Base URL: {@code /api/audit}</p>
+ */
 @Slf4j
 @RestController
 @RequestMapping("/api/audit")
@@ -28,6 +38,17 @@ public class AuditController {
     private final AuditLogRepository auditLogRepository;
     private final AuditExcelExportService excelExportService;
 
+    /**
+     * Lista entradas del log de auditoría con paginación y filtros opcionales.
+     *
+     * @param page       número de página (por defecto 0)
+     * @param size       tamaño de página (por defecto 50)
+     * @param username   filtra por nombre de usuario (opcional)
+     * @param entityType filtra por tipo de entidad como "Venta" o "Producto" (opcional)
+     * @param action     filtra por nombre de acción como "VENTA_CREADA" (opcional)
+     * @param from       fecha de inicio del rango (opcional)
+     * @param to         fecha de fin del rango (opcional)
+     */
     @GetMapping
     public List<AuditLogResponse> findAll(
             @RequestParam(defaultValue = "0") int page,
@@ -38,6 +59,7 @@ public class AuditController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
 
+        // Normaliza los filtros: strings vacíos se tratan como "sin filtro"
         String u = (username  != null && !username.isBlank())  ? username  : null;
         String e = (entityType!= null && !entityType.isBlank())? entityType: null;
         String a = (action    != null && !action.isBlank())    ? action    : null;
@@ -48,6 +70,11 @@ public class AuditController {
                 .stream().map(AuditLogResponse::from).collect(Collectors.toList());
     }
 
+    /**
+     * Retorna estadísticas agregadas del log de auditoría:
+     * conteos por período (hoy, semana, mes, total), por acción y por entidad,
+     * además del top 5 de usuarios más activos en los últimos 7 días.
+     */
     @GetMapping("/stats")
     public Map<String, Object> stats() {
         LocalDateTime now   = LocalDateTime.now();
@@ -61,11 +88,13 @@ public class AuditController {
         result.put("month",       auditLogRepository.countSince(month));
         result.put("total",       auditLogRepository.count());
 
+        // Agrupa el conteo de acciones (ej. VENTA_CREADA: 150, STOCK_AJUSTADO: 30)
         Map<String, Long> byAction = new LinkedHashMap<>();
         for (Object[] row : auditLogRepository.countByAction())
             byAction.put((String) row[0], (Long) row[1]);
         result.put("byAction", byAction);
 
+        // Agrupa el conteo por tipo de entidad (ej. Venta: 150, Producto: 45)
         Map<String, Long> byEntity = new LinkedHashMap<>();
         for (Object[] row : auditLogRepository.countByEntityType())
             byEntity.put((String) row[0], (Long) row[1]);
@@ -84,6 +113,12 @@ public class AuditController {
         return result;
     }
 
+    /**
+     * Exporta el log de auditoría a un archivo Excel (.xlsx) con los mismos
+     * filtros disponibles en el endpoint de listado.
+     *
+     * <p>El archivo se retorna como descarga con el nombre {@code Auditoria_YYYY-MM-DD.xlsx}.</p>
+     */
     @GetMapping("/export/excel")
     public ResponseEntity<byte[]> exportExcel(
             @RequestParam(required = false) String username,

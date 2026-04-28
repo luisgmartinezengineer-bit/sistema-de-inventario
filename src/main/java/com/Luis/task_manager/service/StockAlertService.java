@@ -13,6 +13,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Servicio encargado de gestionar las alertas de bajo inventario.
+ *
+ * <p>Es invocado automáticamente por {@link ProductService} y {@link SaleService}
+ * cada vez que el stock de un producto cambia, ya sea por una venta o por
+ * un ajuste manual.</p>
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -20,10 +27,22 @@ public class StockAlertService {
 
     private final StockAlertRepository alertRepository;
 
+    /**
+     * Evalúa el stock actual del producto y crea, actualiza o resuelve alertas según corresponda.
+     *
+     * <ul>
+     *   <li>Si {@code stock <= minStock}: crea una nueva alerta o actualiza la existente.</li>
+     *   <li>Si el stock se recupera: resuelve automáticamente la alerta abierta.</li>
+     * </ul>
+     *
+     * @param product producto cuyo stock acaba de cambiar
+     */
     public void checkAndAlert(Product product) {
         boolean isLow = product.getStock() <= product.getMinStock();
 
         if (isLow) {
+            // Si ya existe una alerta activa, solo se actualiza el stock actual.
+            // Si no existe, se crea una nueva alerta.
             alertRepository.findByProductIdAndResolvedFalse(product.getId())
                     .ifPresentOrElse(
                             existing -> {
@@ -39,7 +58,7 @@ public class StockAlertService {
                                     .build())
                     );
         } else {
-            // stock recovered — auto-resolve any open alert
+            // El stock se recuperó: se cierra automáticamente cualquier alerta abierta.
             alertRepository.findByProductIdAndResolvedFalse(product.getId())
                     .ifPresent(a -> {
                         a.setResolved(true);
@@ -49,6 +68,10 @@ public class StockAlertService {
         }
     }
 
+    /**
+     * Retorna todas las alertas que aún no han sido resueltas, ordenadas
+     * de más reciente a más antigua.
+     */
     @Transactional(readOnly = true)
     public List<StockAlertResponse> findActive() {
         return alertRepository.findByResolvedFalseOrderByCreatedAtDesc().stream()
@@ -56,6 +79,10 @@ public class StockAlertService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retorna el historial completo de alertas (activas y resueltas),
+     * ordenadas de más reciente a más antigua.
+     */
     @Transactional(readOnly = true)
     public List<StockAlertResponse> findAll() {
         return alertRepository.findAllByOrderByCreatedAtDesc().stream()
@@ -63,6 +90,13 @@ public class StockAlertService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Marca manualmente una alerta como resuelta.
+     *
+     * @param alertId ID de la alerta a resolver
+     * @return la alerta actualizada
+     * @throws ResourceNotFoundException si no existe una alerta con ese ID
+     */
     public StockAlertResponse resolve(Long alertId) {
         StockAlert alert = alertRepository.findById(alertId)
                 .orElseThrow(() -> new ResourceNotFoundException("Alerta no encontrada: " + alertId));

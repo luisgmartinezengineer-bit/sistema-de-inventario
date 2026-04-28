@@ -19,6 +19,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Servicio de gestión de productos del inventario.
+ *
+ * <p>Centraliza la lógica de negocio para crear, actualizar y consultar productos,
+ * así como para registrar ajustes de stock y verificar alertas de bajo inventario.</p>
+ *
+ * <p>Cada operación que modifica el stock llama a {@link StockAlertService#checkAndAlert(Product)}
+ * para mantener las alertas actualizadas en tiempo real.</p>
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -29,6 +38,9 @@ public class ProductService {
     private final CategoryService categoryService;
     private final StockAlertService alertService;
 
+    /**
+     * Retorna todos los productos activos del inventario.
+     */
     @Transactional(readOnly = true)
     public List<ProductResponse> findAll() {
         return productRepository.findByActiveTrue().stream()
@@ -36,11 +48,21 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Busca un producto activo por su ID.
+     *
+     * @throws ResourceNotFoundException si el producto no existe
+     */
     @Transactional(readOnly = true)
     public ProductResponse findById(Long id) {
         return ProductResponse.from(getOrThrow(id));
     }
 
+    /**
+     * Filtra los productos activos que pertenecen a una categoría específica.
+     *
+     * @param categoryId ID de la categoría
+     */
     @Transactional(readOnly = true)
     public List<ProductResponse> findByCategory(Long categoryId) {
         return productRepository.findByCategoryIdAndActiveTrue(categoryId).stream()
@@ -48,6 +70,11 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Busca productos activos cuyo nombre contiene el texto indicado (búsqueda parcial, sin distinción de mayúsculas).
+     *
+     * @param name texto a buscar en el nombre del producto
+     */
     @Transactional(readOnly = true)
     public List<ProductResponse> search(String name) {
         return productRepository.findByNameContainingIgnoreCaseAndActiveTrue(name).stream()
@@ -55,6 +82,9 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retorna los productos cuyo stock está en o por debajo del nivel mínimo configurado.
+     */
     @Transactional(readOnly = true)
     public List<ProductResponse> findLowStock() {
         return productRepository.findLowStockProducts().stream()
@@ -62,6 +92,11 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retorna los productos que vencen dentro de los próximos {@code days} días.
+     *
+     * @param days número de días hacia adelante para verificar vencimiento
+     */
     @Transactional(readOnly = true)
     public List<ProductResponse> findExpiring(int days) {
         return productRepository.findExpiringBefore(LocalDate.now().plusDays(days)).stream()
@@ -69,6 +104,12 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Crea un nuevo producto en el inventario y verifica si ya requiere una alerta de stock.
+     *
+     * @param req datos del nuevo producto
+     * @return el producto creado
+     */
     public ProductResponse create(ProductRequest req) {
         Category category = req.getCategoryId() != null
                 ? categoryService.getOrThrow(req.getCategoryId())
@@ -90,10 +131,19 @@ public class ProductService {
                 .build();
 
         product = productRepository.save(product);
+        // Verifica alertas en caso de que el stock inicial ya sea bajo
         alertService.checkAndAlert(product);
         return ProductResponse.from(product);
     }
 
+    /**
+     * Actualiza los datos de un producto existente.
+     * No modifica el stock directamente; para eso usar {@link #adjustStock}.
+     *
+     * @param id  ID del producto a actualizar
+     * @param req nuevos datos del producto
+     * @throws ResourceNotFoundException si el producto no existe
+     */
     public ProductResponse update(Long id, ProductRequest req) {
         Product product = getOrThrow(id);
         Category category = req.getCategoryId() != null
@@ -112,16 +162,38 @@ public class ProductService {
         product.setLotNumber(req.getLotNumber());
 
         product = productRepository.save(product);
+        // El cambio de minStock puede activar o resolver alertas
         alertService.checkAndAlert(product);
         return ProductResponse.from(product);
     }
 
+    /**
+     * Realiza una baja lógica del producto (soft-delete).
+     * El producto deja de aparecer en listados y no puede venderse.
+     *
+     * @param id ID del producto a desactivar
+     * @throws ResourceNotFoundException si el producto no existe
+     */
     public void deactivate(Long id) {
         Product product = getOrThrow(id);
         product.setActive(false);
         productRepository.save(product);
     }
 
+    /**
+     * Ajusta el stock de un producto y registra el movimiento correspondiente.
+     *
+     * <ul>
+     *   <li>{@code ENTRY}: suma la cantidad al stock actual.</li>
+     *   <li>{@code EXIT}: resta la cantidad; lanza excepción si no hay suficiente stock.</li>
+     *   <li>{@code ADJUSTMENT}: reemplaza el stock actual con la cantidad indicada.</li>
+     * </ul>
+     *
+     * @param id  ID del producto
+     * @param req tipo de movimiento, cantidad y motivo
+     * @throws IllegalArgumentException  si el tipo es inválido o no hay stock suficiente para EXIT
+     * @throws ResourceNotFoundException si el producto no existe
+     */
     public ProductResponse adjustStock(Long id, StockAdjustRequest req) {
         Product product = getOrThrow(id);
         int before = product.getStock();
@@ -136,12 +208,14 @@ public class ProductService {
                 }
                 yield before - req.getQuantity();
             }
+            // ADJUSTMENT reemplaza el valor actual con el valor recibido
             case ADJUSTMENT -> req.getQuantity();
         };
 
         product.setStock(newStock);
         product = productRepository.save(product);
 
+        // Registra el movimiento para el historial de auditoría
         movementRepository.save(StockMovement.builder()
                 .product(product)
                 .type(type)
@@ -156,6 +230,12 @@ public class ProductService {
         return ProductResponse.from(product);
     }
 
+    /**
+     * Retorna el historial de movimientos de stock de un producto, ordenado del más reciente al más antiguo.
+     *
+     * @param productId ID del producto
+     * @throws ResourceNotFoundException si el producto no existe
+     */
     @Transactional(readOnly = true)
     public List<StockMovementResponse> getMovements(Long productId) {
         getOrThrow(productId);
@@ -164,11 +244,20 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Busca un producto activo por su ID o lanza {@link ResourceNotFoundException}.
+     * Método utilitario reutilizado por otros servicios (ej. {@link SaleService}).
+     */
     public Product getOrThrow(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado: " + id));
     }
 
+    /**
+     * Convierte el tipo de movimiento recibido como String al enum correspondiente.
+     *
+     * @throws IllegalArgumentException si el valor no corresponde a ningún tipo válido
+     */
     private StockMovement.MovementType parseType(String type) {
         if (type == null) return StockMovement.MovementType.ENTRY;
         try {
