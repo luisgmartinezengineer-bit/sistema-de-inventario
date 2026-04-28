@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventario Pro</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0d6efd">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+</head>
+<body>
+<div class="wrapper d-flex">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <i class="bi bi-boxes fs-2"></i>
+      <div class="mt-1 fw-bold">Inventario Pro</div>
+      <div class="small opacity-75 mt-1" id="user-info-sidebar"></div>
+    </div>
+    <ul class="nav flex-column mt-2">
+
+      <!-- Dashboard -->
+      <li><a class="nav-link sidebar-link active" href="#" onclick="showSection('dashboard',this);return false"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+
+      <!-- ── Inventario ── -->
+      <li>
+        <a class="nav-link sidebar-link sidebar-group-toggle" href="#"
+           data-bs-toggle="collapse" data-bs-target="#inventario-submenu" aria-expanded="false">
+          <i class="bi bi-box-seam"></i> Inventario <i class="bi bi-chevron-down chevron"></i>
+        </a>
+        <ul class="collapse list-unstyled mb-0" id="inventario-submenu">
+          <li><a id="subnav-inventario" class="nav-link sidebar-sublink" href="#" onclick="showSection('inventario',this);return false"><i class="bi bi-list-ul"></i> Productos</a></li>
+          <li><a id="subnav-nuevo-producto" class="nav-link sidebar-sublink" href="#" onclick="goNewProduct(this);return false"><i class="bi bi-plus-circle"></i> Nuevo Producto</a></li>
+          <li><a id="subnav-categorias" class="nav-link sidebar-sublink" href="#" onclick="showSection('categorias',this);return false"><i class="bi bi-tags"></i> Categorías</a></li>
+          <li><a class="nav-link sidebar-sublink" href="#" onclick="showSection('alertas',this);return false"><i class="bi bi-bell"></i> Alertas <span id="badge-alerts" class="badge bg-danger ms-1 d-none">0</span></a></li>
+        </ul>
+      </li>
+
+      <!-- ── Ventas ── -->
+      <li>
+        <a id="nav-ventas-group" class="nav-link sidebar-link sidebar-group-toggle" href="#"
+           data-bs-toggle="collapse" data-bs-target="#ventas-submenu" aria-expanded="false">
+          <i class="bi bi-cart3"></i> Ventas <i class="bi bi-chevron-down chevron"></i>
+        </a>
+        <ul class="collapse list-unstyled mb-0" id="ventas-submenu">
+          <li><a id="subnav-ventas" class="nav-link sidebar-sublink" href="#" onclick="showSection('ventas',this);return false"><i class="bi bi-cart-plus"></i> Nueva Venta</a></li>
+          <li id="nav-devoluciones"><a id="subnav-devoluciones" class="nav-link sidebar-sublink" href="#" onclick="showSection('devoluciones',this);return false"><i class="bi bi-arrow-return-left"></i> Devoluciones</a></li>
+          <li><a class="nav-link sidebar-sublink" href="#" onclick="showSection('clientes',this);return false"><i class="bi bi-people"></i> Clientes</a></li>
+          <li><a class="nav-link sidebar-sublink" href="#" onclick="showSection('cajas',this);return false"><i class="bi bi-cash-coin"></i> Cajas</a></li>
+        </ul>
+      </li>
+
+      <!-- ── Compras (ADMIN / SUPERVISOR) ── -->
+      <li id="nav-compras-group" class="d-none">
+        <a class="nav-link sidebar-link sidebar-group-toggle" href="#"
+           data-bs-toggle="collapse" data-bs-target="#compras-submenu" aria-expanded="false">
+          <i class="bi bi-bag-plus"></i> Compras <i class="bi bi-chevron-down chevron"></i>
+        </a>
+        <ul class="collapse list-unstyled mb-0" id="compras-submenu">
+          <li><a id="subnav-compras" class="nav-link sidebar-sublink" href="#" onclick="showSection('compras',this);return false"><i class="bi bi-file-earmark-text"></i> Órdenes</a></li>
+          <li><a id="subnav-proveedores" class="nav-link sidebar-sublink" href="#" onclick="showSection('proveedores',this);return false"><i class="bi bi-truck"></i> Proveedores</a></li>
+        </ul>
+      </li>
+
+      <!-- ── Administración (solo ADMIN) ── -->
+      <li id="nav-admin-group" class="d-none">
+        <a class="nav-link sidebar-link sidebar-group-toggle" href="#"
+           data-bs-toggle="collapse" data-bs-target="#admin-submenu" aria-expanded="false">
+          <i class="bi bi-shield-lock"></i> Administración <i class="bi bi-chevron-down chevron"></i>
+        </a>
+        <ul class="collapse list-unstyled mb-0" id="admin-submenu">
+          <li id="nav-contabilidad"><a class="nav-link sidebar-sublink" href="#" onclick="showSection('contabilidad',this);return false"><i class="bi bi-graph-up-arrow"></i> Contabilidad</a></li>
+          <li id="nav-auditoria"><a class="nav-link sidebar-sublink" href="#" onclick="showSection('auditoria',this);return false"><i class="bi bi-shield-check"></i> Auditoría</a></li>
+          <li id="nav-usuarios"><a class="nav-link sidebar-sublink" href="#" onclick="showSection('usuarios',this);return false"><i class="bi bi-person-gear"></i> Usuarios</a></li>
+          <li id="nav-empresa"><a class="nav-link sidebar-sublink" href="#" onclick="showSection('empresa',this);return false"><i class="bi bi-building"></i> Mi Empresa</a></li>
+          <li id="nav-docs"><a class="nav-link sidebar-sublink" href="#" onclick="showSection('docs',this);return false"><i class="bi bi-file-earmark-text"></i> Documentación</a></li>
+        </ul>
+      </li>
+
+    </ul>
+    <div class="mt-auto p-3">
+      <a href="/logout" class="btn btn-sm btn-outline-light w-100"><i class="bi bi-box-arrow-left me-1"></i>Cerrar Sesión</a>
+    </div>
+  </nav>
+
+  <!-- CONTENIDO -->
+  <div id="main-content" class="flex-grow-1 d-flex flex-column">
+    <nav class="navbar bg-white shadow-sm px-4 py-2">
+      <span id="page-title" class="fw-bold fs-5">Dashboard</span>
+      <div class="d-flex align-items-center gap-3">
+        <span class="text-muted small" id="current-date"></span>
+        <span class="badge bg-primary" id="user-role-badge"></span>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i>
+            <span id="navbar-username" class="small fw-semibold"></span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:220px">
+            <li><h6 class="dropdown-header small text-muted">Mi cuenta</h6></li>
+            <li>
+              <a class="dropdown-item small" href="#" onclick="openProfileModal();return false">
+                <i class="bi bi-person-vcard me-2 text-primary"></i>Mi perfil
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small" href="#" onclick="openChangePasswordModal();return false">
+                <i class="bi bi-key me-2 text-warning"></i>Cambiar contraseña
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item small text-danger" href="/logout">
+                <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Toast -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999">
+      <div id="app-toast" class="toast align-items-center text-white border-0">
+        <div class="d-flex">
+          <div class="toast-body" id="toast-msg"></div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-4 flex-grow-1">
+
+      <!-- ═══ DASHBOARD ═══ -->
+      <section id="section-dashboard">
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-md-3" onclick="goSection('inventario')" style="cursor:pointer">
+            <div class="card stat-card border-0 shadow-sm">
+              <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-box-seam fs-4"></i></div>
+                <div><div class="text-muted small">Productos</div><div class="fw-bold fs-4" id="stat-products">—</div></div>
+                <i class="bi bi-arrow-right-circle ms-auto text-primary opacity-50"></i>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" onclick="goSection('alertas')" style="cursor:pointer">
+            <div class="card stat-card border-0 shadow-sm">
+              <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-exclamation-triangle fs-4"></i></div>
+                <div><div class="text-muted small">Stock Bajo</div><div class="fw-bold fs-4" id="stat-lowstock">—</div></div>
+                <i class="bi bi-arrow-right-circle ms-auto text-danger opacity-50"></i>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" onclick="goSection('ventas')" style="cursor:pointer">
+            <div class="card stat-card border-0 shadow-sm">
+              <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-cash-stack fs-4"></i></div>
+                <div><div class="text-muted small">Ventas Hoy</div><div class="fw-bold fs-5" id="stat-today">—</div></div>
+                <i class="bi bi-arrow-right-circle ms-auto text-success opacity-50"></i>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" onclick="goSection('contabilidad')" style="cursor:pointer">
+            <div class="card stat-card border-0 shadow-sm">
+              <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-graph-up fs-4"></i></div>
+                <div><div class="text-muted small">Ventas del Mes</div><div class="fw-bold fs-5" id="stat-month">—</div></div>
+                <i class="bi bi-arrow-right-circle ms-auto text-warning opacity-50"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-5">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Stock Bajo</span>
+                <a href="#" class="small text-primary" onclick="goSection('alertas');return false">Ver todas <i class="bi bi-arrow-right"></i></a>
+              </div>
+              <div class="card-body p-0"><table class="table table-sm table-hover mb-0"><thead class="table-light"><tr><th>Producto</th><th>Stock</th><th>Mínimo</th></tr></thead><tbody id="dash-lowstock"></tbody></table></div>
+            </div>
+          </div>
+          <div class="col-md-7">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-receipt text-primary me-2"></i>Últimas Ventas</span>
+                <a href="#" class="small text-primary" onclick="goSection('ventas');return false">Ver todas <i class="bi bi-arrow-right"></i></a>
+              </div>
+              <div class="card-body p-0"><table class="table table-sm table-hover mb-0"><thead class="table-light"><tr><th>#</th><th>Cliente</th><th>Vendedor</th><th>Total</th><th>Fecha</th></tr></thead><tbody id="dash-sales"></tbody></table></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ INVENTARIO ═══ -->
+      <section id="section-inventario" class="d-none">
+        <!-- Stats rápidas -->
+        <div class="row g-3 mb-3">
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm">
+              <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-boxes fs-5"></i></div>
+                <div><div class="text-muted small">Total Productos</div><div class="fw-bold fs-5" id="inv-stat-total">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm">
+              <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-check-circle fs-5"></i></div>
+                <div><div class="text-muted small">Activos</div><div class="fw-bold fs-5" id="inv-stat-active">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm" style="cursor:pointer" onclick="goSection('alertas')">
+              <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-exclamation-triangle fs-5"></i></div>
+                <div><div class="text-muted small">Stock Bajo</div><div class="fw-bold fs-5" id="inv-stat-low">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm" style="cursor:pointer" onclick="goSection('categorias')">
+              <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-tags fs-5"></i></div>
+                <div><div class="text-muted small">Categorías</div><div class="fw-bold fs-5" id="inv-stat-cats">—</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Filtros -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div class="d-flex gap-2 flex-wrap align-items-center">
+            <div class="input-group input-group-sm" style="width:230px">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" id="search-product" class="form-control" placeholder="Nombre o código de barras..." oninput="filterProducts()">
+            </div>
+            <select id="filter-category" class="form-select form-select-sm" style="width:170px" onchange="filterProducts()"><option value="">Todas las categorías</option></select>
+            <select id="filter-status" class="form-select form-select-sm" style="width:130px" onchange="filterProducts()">
+              <option value="">Todos</option>
+              <option value="active">Activos</option>
+              <option value="inactive">Inactivos</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openProductModal()"><i class="bi bi-plus-lg"></i> Nuevo Producto</button>
+        </div>
+        <div class="card border-0 shadow-sm"><div class="card-body p-0"><div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light"><tr><th>Nombre</th><th>Categoría</th><th>Cód. Barras</th><th>Precio</th><th>IVA</th><th>Stock</th><th>Mín.</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="products-tbody"></tbody>
+          </table>
+        </div></div></div>
+      </section>
+
+      <!-- ═══ VENTAS ═══ -->
+      <section id="section-ventas" class="d-none">
+        <div id="no-caja-warning" class="alert alert-warning d-none mb-3">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          No tienes una caja abierta asignada. Contacta a tu supervisor para que te asigne una antes de registrar ventas.
+        </div>
+        <div class="row g-3">
+          <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white fw-semibold"><i class="bi bi-cart-plus text-primary me-2"></i>Nueva Venta</div>
+              <div class="card-body">
+                <div class="row g-2 mb-2">
+                  <div class="col-7">
+                    <select id="sale-customer-select" class="form-select form-select-sm"><option value="">— Cliente (opcional) —</option></select>
+                  </div>
+                  <div class="col-5">
+                    <select id="sale-caja-select" class="form-select form-select-sm"><option value="">— Caja (opcional) —</option></select>
+                  </div>
+                </div>
+                <div class="row g-2 mb-2">
+                  <div class="col-6">
+                    <select id="sale-payment" class="form-select form-select-sm" onchange="onPaymentMethodChange()">
+                      <option value="EFECTIVO">Efectivo</option>
+                      <option value="TARJETA">Tarjeta</option>
+                      <option value="TRANSFERENCIA">Transferencia</option>
+                      <option value="CREDITO">Crédito</option>
+                    </select>
+                  </div>
+                  <div class="col-6">
+                    <textarea id="sale-notes" class="form-control form-control-sm" rows="1" placeholder="Notas (opcional)"></textarea>
+                  </div>
+                </div>
+                <div class="mb-2 position-relative">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="sale-search" class="form-control" placeholder="Buscar por nombre o código de barras..." oninput="filterSaleProducts()" autocomplete="off">
+                    <input type="number" id="sale-qty" class="form-control" min="1" value="1" style="width:70px">
+                    <button class="btn btn-outline-primary px-2" onclick="addSaleItem()"><i class="bi bi-plus-lg"></i></button>
+                  </div>
+                  <div id="sale-product-dropdown" class="position-absolute w-100 bg-white border rounded-2 shadow-sm d-none" style="top:100%;left:0;z-index:1050;max-height:220px;overflow-y:auto"></div>
+                </div>
+                <div id="sale-selected-product" class="d-none mb-2 p-2 rounded-2 border bg-light d-flex align-items-center gap-2">
+                  <i class="bi bi-box-seam text-primary"></i>
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold small" id="sel-prod-name"></div>
+                    <div class="text-muted" style="font-size:.75rem"><span id="sel-prod-price"></span> · IVA <span id="sel-prod-tax"></span>% · Stock: <span id="sel-prod-stock"></span></div>
+                  </div>
+                  <button class="btn btn-xs btn-outline-secondary" onclick="clearSelectedProduct()"><i class="bi bi-x"></i></button>
+                </div>
+                <table class="table table-sm mb-2">
+                  <thead class="table-light"><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th><th></th></tr></thead>
+                  <tbody id="sale-items-tbody"></tbody>
+                  <tfoot>
+                    <tr class="table-light"><td colspan="2" class="text-end text-muted small">Subtotal:</td><td id="sale-subtotal" class="text-muted small">$0.00</td><td></td></tr>
+                    <tr class="table-light"><td colspan="2" class="text-end text-muted small">IVA:</td><td id="sale-iva" class="text-muted small">$0.00</td><td></td></tr>
+                    <tr class="fw-bold table-light"><td colspan="2" class="text-end">TOTAL:</td><td id="sale-total" class="text-success">$0.00</td><td></td></tr>
+                  </tfoot>
+                </table>
+                <div id="cash-panel" class="mb-2 d-none">
+                  <div class="row g-2 align-items-center">
+                    <div class="col-6">
+                      <label class="form-label small fw-semibold mb-1">Efectivo recibido</label>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text">$</span>
+                        <input type="number" id="cash-received" class="form-control" min="0" step="100" placeholder="0" oninput="calcChange()">
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small fw-semibold mb-1">Cambio a devolver</label>
+                      <div id="change-display" class="fw-bold fs-5 text-success px-2">—</div>
+                    </div>
+                  </div>
+                  <div id="change-alert" class="d-none mt-1 text-danger small fw-semibold">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Efectivo insuficiente
+                  </div>
+                </div>
+                <button class="btn btn-success w-100 btn-sm" onclick="createSale()"><i class="bi bi-check-lg me-1"></i>Registrar Venta</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white fw-semibold"><i class="bi bi-clock-history text-primary me-2"></i>Historial de Ventas</div>
+              <div class="card-body p-0"><div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light"><tr><th>#</th><th>Cliente</th><th>Caja</th><th>Vendedor</th><th>Total</th><th>Fecha</th><th></th></tr></thead>
+                  <tbody id="sales-tbody"></tbody>
+                </table>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ DEVOLUCIONES ═══ -->
+      <section id="section-devoluciones" class="d-none">
+        <div class="row g-3">
+
+          <!-- Panel izquierdo: solicitar devolución (todos los roles) -->
+          <div class="col-lg-5">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-header bg-white fw-semibold"><i class="bi bi-search text-warning me-2"></i>Buscar Venta por Factura</div>
+              <div class="card-body">
+                <div class="input-group input-group-sm mb-2">
+                  <span class="input-group-text"><i class="bi bi-receipt"></i></span>
+                  <input type="text" id="return-invoice-search" class="form-control" placeholder="Número de factura..." oninput="searchSalesForReturn()">
+                </div>
+                <div id="return-sale-results" class="d-none">
+                  <div class="list-group list-group-flush" id="return-sale-list"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Formulario de solicitud (aparece al seleccionar una venta) -->
+            <div id="return-form-card" class="card border-0 shadow-sm d-none">
+              <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-arrow-return-left text-warning me-2"></i>Solicitar Devolución</span>
+                <button class="btn btn-xs btn-outline-secondary" onclick="clearReturnForm()"><i class="bi bi-x"></i></button>
+              </div>
+              <div class="card-body">
+                <div id="return-sale-info" class="mb-3 p-2 rounded bg-light small"></div>
+                <div class="mb-2">
+                  <label class="form-label small fw-semibold">Motivo *</label>
+                  <input type="text" id="return-reason" class="form-control form-control-sm" placeholder="Ej: Producto defectuoso, cambio de talla...">
+                </div>
+                <div class="mb-2">
+                  <label class="form-label small fw-semibold">Ítems a devolver</label>
+                  <table class="table table-sm mb-0">
+                    <thead class="table-light"><tr><th>Producto</th><th style="width:65px">Cant.</th><th style="width:70px" class="text-muted">Máx.</th></tr></thead>
+                    <tbody id="return-items-tbody"></tbody>
+                  </table>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label small fw-semibold">Notas</label>
+                  <textarea id="return-notes" class="form-control form-control-sm" rows="2" placeholder="Observaciones (opcional)"></textarea>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-semibold small">Estimado: <span id="return-total-preview" class="text-warning fw-bold">$0.00</span></span>
+                  <button class="btn btn-warning btn-sm" onclick="submitReturn()"><i class="bi bi-send me-1"></i>Enviar Solicitud</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel derecho: varía según rol -->
+          <div class="col-lg-7">
+            <!-- Pendientes para aprobar (solo ADMIN/SUPERVISOR) -->
+            <div id="returns-pending-panel" class="card border-0 shadow-sm mb-3 d-none">
+              <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-hourglass-split text-warning me-2"></i>Solicitudes Pendientes <span id="returns-pending-badge" class="badge bg-warning text-dark ms-1">0</span></span>
+              </div>
+              <div class="card-body p-0"><div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light"><tr><th>Factura</th><th>Solicitante</th><th>Motivo</th><th>Monto</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                  <tbody id="returns-pending-tbody"></tbody>
+                </table>
+              </div></div>
+            </div>
+
+            <!-- Historial / Mis solicitudes -->
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span id="returns-history-title"><i class="bi bi-clock-history text-primary me-2"></i>Historial de Devoluciones</span>
+                <div class="d-flex gap-1">
+                  <input type="date" id="return-date-from" class="form-control form-control-sm" style="width:130px" onchange="filterReturnsHistory()">
+                  <input type="date" id="return-date-to" class="form-control form-control-sm" style="width:130px" onchange="filterReturnsHistory()">
+                </div>
+              </div>
+              <div class="card-body p-0"><div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light"><tr><th>Factura</th><th>Motivo</th><th>Monto</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+                  <tbody id="returns-tbody"></tbody>
+                </table>
+              </div></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ═══ CLIENTES ═══ -->
+      <section id="section-clientes" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <input type="text" id="search-customer" class="form-control form-control-sm" placeholder="Buscar cliente..." style="width:220px" oninput="searchCustomers()">
+          <button class="btn btn-primary btn-sm" onclick="openCustomerModal()"><i class="bi bi-plus-lg"></i> Nuevo Cliente</button>
+        </div>
+        <div class="card border-0 shadow-sm"><div class="card-body p-0"><table class="table table-hover mb-0">
+          <thead class="table-light"><tr><th>Nombre</th><th>Documento</th><th>Teléfono</th><th>Email</th><th>Dirección</th><th>Acciones</th></tr></thead>
+          <tbody id="customers-tbody"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- ═══ CAJAS ═══ -->
+      <section id="section-cajas" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <ul class="nav nav-pills nav-sm" id="cajas-tabs">
+            <li class="nav-item"><a class="nav-link active small py-1 px-3" href="#" onclick="showCajasTab('resumen',this);return false">Resumen</a></li>
+            <li class="nav-item"><a class="nav-link small py-1 px-3" href="#" onclick="showCajasTab('productividad',this);return false"><i class="bi bi-bar-chart me-1"></i>Productividad</a></li>
+            <li class="nav-item"><a class="nav-link small py-1 px-3" href="#" onclick="showCajasTab('historial',this);return false">Historial</a></li>
+          </ul>
+          <button class="btn btn-primary btn-sm" onclick="openCajaModal()"><i class="bi bi-plus-lg"></i> Abrir Caja</button>
+        </div>
+
+        <!-- Tab: Resumen cajas abiertas -->
+        <div id="cajas-tab-resumen">
+          <div class="row g-3" id="cajas-open-row"></div>
+          <p class="text-muted small mt-2 mb-0" id="cajas-empty-msg" style="display:none">No hay cajas abiertas en este momento.</p>
+        </div>
+
+        <!-- Tab: Productividad por caja -->
+        <div id="cajas-tab-productividad" class="d-none">
+          <div class="row g-3 mb-3" id="prod-stats-row"></div>
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-bar-chart-fill text-primary me-2"></i>Productividad por Caja</span>
+              <div class="d-flex gap-2 align-items-center">
+                <input type="date" id="prod-from" class="form-control form-control-sm" style="width:145px">
+                <span class="text-muted small">a</span>
+                <input type="date" id="prod-to" class="form-control form-control-sm" style="width:145px">
+                <button class="btn btn-sm btn-outline-primary" onclick="loadProductividad()"><i class="bi bi-search"></i></button>
+              </div>
+            </div>
+            <div class="card-body p-0"><div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light"><tr><th>Caja</th><th>Vendedor</th><th>Estado</th><th>Apertura</th><th>Cierre</th><th>Ventas Totales</th><th>Gastos</th><th>Balance</th><th>Efectivo Inicial</th></tr></thead>
+                <tbody id="prod-tbody"></tbody>
+              </table>
+            </div></div>
+          </div>
+        </div>
+
+        <!-- Tab: Historial -->
+        <div id="cajas-tab-historial" class="d-none">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-journal-text text-primary me-2"></i>Historial de Cajas</div>
+            <div class="card-body p-0"><div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light"><tr><th>Nombre</th><th>Vendedor</th><th>Estado</th><th>Apertura</th><th>Cierre</th><th>Inicial</th><th>Ventas</th><th>Balance</th><th></th></tr></thead>
+                <tbody id="cajas-tbody"></tbody>
+              </table>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ CATEGORÍAS ═══ -->
+      <section id="section-categorias" class="d-none">
+        <!-- Stats -->
+        <div class="row g-3 mb-3">
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm">
+              <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-tags fs-5"></i></div>
+                <div><div class="text-muted small">Total Categorías</div><div class="fw-bold fs-5" id="cat-stat-total">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm">
+              <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-question-circle fs-5"></i></div>
+                <div><div class="text-muted small">Sin Categoría</div><div class="fw-bold fs-5" id="cat-stat-sincat">—</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Filtros -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div class="input-group input-group-sm" style="width:240px">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" id="search-category" class="form-control" placeholder="Buscar categoría..." oninput="filterCategories()">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openCategoryModal()"><i class="bi bi-plus-lg"></i> Nueva Categoría</button>
+        </div>
+        <div class="card border-0 shadow-sm"><div class="card-body p-0">
+          <table class="table table-hover mb-0">
+            <thead class="table-light"><tr><th>Nombre</th><th>Descripción</th><th>Productos</th><th>Acciones</th></tr></thead>
+            <tbody id="categories-tbody"></tbody>
+          </table>
+        </div></div>
+      </section>
+
+      <!-- ═══ ALERTAS ═══ -->
+      <section id="section-alertas" class="d-none">
+        <div class="alert alert-warning d-flex align-items-center gap-2 mb-3 py-2">
+          <i class="bi bi-info-circle-fill"></i>
+          <span class="small">Los productos aquí listados tienen stock <strong>igual o por debajo del mínimo configurado</strong>. Desaparecen automáticamente al ingresar una actualización de stock suficiente.</span>
+        </div>
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white fw-semibold"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Productos con Stock Bajo</div>
+          <div class="card-body p-0"><table class="table table-hover mb-0">
+            <thead class="table-light"><tr><th>Producto</th><th>Categoría</th><th>Stock Actual</th><th>Stock Mínimo</th><th>Acción</th></tr></thead>
+            <tbody id="alerts-tbody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- ═══ CONTABILIDAD ═══ -->
+      <section id="section-contabilidad" class="d-none">
+
+        <!-- Filtros -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body py-3">
+            <div class="d-flex flex-wrap gap-3 align-items-end">
+              <div>
+                <label class="form-label small fw-semibold mb-1">Desde</label>
+                <input type="date" id="rep-from" class="form-control form-control-sm" style="width:145px">
+              </div>
+              <div>
+                <label class="form-label small fw-semibold mb-1">Hasta</label>
+                <input type="date" id="rep-to" class="form-control form-control-sm" style="width:145px">
+              </div>
+              <div>
+                <label class="form-label small fw-semibold mb-1">Filtrar por caja</label>
+                <select id="rep-caja" class="form-select form-select-sm" style="width:200px">
+                  <option value="">— Todas las cajas —</option>
+                </select>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="loadContabilidad()"><i class="bi bi-search me-1"></i>Generar Reporte</button>
+              <div class="ms-auto d-flex gap-2">
+                <button class="btn btn-sm btn-outline-success" onclick="exportExcel()"><i class="bi bi-file-earmark-excel me-1"></i>Excel</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="exportPDF()"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-receipt fs-4"></i></div>
+                <div><div class="text-muted small">Ventas Netas</div><div class="fw-bold fs-5" id="rep-subtotal">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-percent fs-4"></i></div>
+                <div><div class="text-muted small">Total IVA</div><div class="fw-bold fs-5" id="rep-tax">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-cash-stack fs-4"></i></div>
+                <div><div class="text-muted small">Total Ingresos</div><div class="fw-bold fs-5" id="rep-total">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="bi bi-cart-check fs-4"></i></div>
+                <div><div class="text-muted small">N° Ventas</div><div class="fw-bold fs-5" id="rep-count">—</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráficas -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-header bg-white fw-semibold"><i class="bi bi-graph-up text-primary me-2"></i>Tendencia de Ventas</div>
+              <div class="card-body"><canvas id="chart-trend" height="100"></canvas></div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-header bg-white fw-semibold"><i class="bi bi-pie-chart text-primary me-2"></i>Método de Pago</div>
+              <div class="card-body d-flex align-items-center justify-content-center"><canvas id="chart-payment" height="180"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla por caja -->
+        <div class="card border-0 shadow-sm mb-3">
+          <div class="card-header bg-white fw-semibold"><i class="bi bi-cash-coin text-primary me-2"></i>Balance por Caja</div>
+          <div class="card-body p-0"><div class="table-responsive">
+            <table class="table table-hover mb-0" id="rep-table">
+              <thead class="table-light">
+                <tr><th>Caja</th><th>Vendedor</th><th>N° Ventas</th><th>Subtotal</th><th>IVA</th><th>Total</th><th>% del Total</th></tr>
+              </thead>
+              <tbody id="rep-tbody"></tbody>
+              <tfoot id="rep-tfoot" class="fw-bold table-light"></tfoot>
+            </table>
+          </div></div>
+        </div>
+
+        <!-- Tabla método de pago -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white fw-semibold"><i class="bi bi-credit-card text-primary me-2"></i>Ventas por Método de Pago</div>
+          <div class="card-body p-0"><div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light"><tr><th>Método</th><th>N° Ventas</th><th>Total</th><th>% del Total</th></tr></thead>
+              <tbody id="rep-payment-tbody"></tbody>
+            </table>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- ═══ EMPRESA ═══ -->
+      <section id="section-empresa" class="d-none">
+        <div class="row justify-content-center">
+          <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white fw-semibold"><i class="bi bi-building text-primary me-2"></i>Configuración de Empresa</div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-8"><label class="form-label small fw-semibold">Razón Social *</label><input type="text" id="emp-razonSocial" class="form-control form-control-sm"></div>
+                  <div class="col-md-3"><label class="form-label small fw-semibold">NIT</label><input type="text" id="emp-nit" class="form-control form-control-sm" placeholder="900123456"></div>
+                  <div class="col-md-1"><label class="form-label small fw-semibold">DV</label><input type="text" id="emp-dv" class="form-control form-control-sm" maxlength="1" placeholder="7"></div>
+                  <div class="col-md-6"><label class="form-label small fw-semibold">Dirección</label><input type="text" id="emp-address" class="form-control form-control-sm"></div>
+                  <div class="col-md-3"><label class="form-label small fw-semibold">Ciudad</label><input type="text" id="emp-city" class="form-control form-control-sm"></div>
+                  <div class="col-md-3"><label class="form-label small fw-semibold">Departamento</label><input type="text" id="emp-dept" class="form-control form-control-sm"></div>
+                  <div class="col-md-4"><label class="form-label small fw-semibold">Teléfono</label><input type="text" id="emp-phone" class="form-control form-control-sm"></div>
+                  <div class="col-md-4"><label class="form-label small fw-semibold">Email</label><input type="email" id="emp-email" class="form-control form-control-sm"></div>
+                  <div class="col-md-4"><label class="form-label small fw-semibold">Sitio Web</label><input type="text" id="emp-web" class="form-control form-control-sm"></div>
+                  <div class="col-md-6"><label class="form-label small fw-semibold">Régimen tributario</label>
+                    <select id="emp-regime" class="form-select form-select-sm">
+                      <option value="RESPONSABLE_IVA">Responsable de IVA</option>
+                      <option value="NO_RESPONSABLE_IVA">No Responsable de IVA</option>
+                      <option value="GRAN_CONTRIBUYENTE">Gran Contribuyente</option>
+                      <option value="REGIMEN_SIMPLE">Régimen Simple de Tributación</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6"><label class="form-label small fw-semibold">Prefijo de factura</label><input type="text" id="emp-prefix" class="form-control form-control-sm" placeholder="FV" maxlength="10"></div>
+                  <hr class="my-1">
+                  <div class="col-12 fw-semibold text-muted small">Resolución DIAN</div>
+                  <div class="col-md-4"><label class="form-label small fw-semibold">Número de resolución</label><input type="text" id="emp-dianRes" class="form-control form-control-sm"></div>
+                  <div class="col-md-4"><label class="form-label small fw-semibold">Fecha resolución</label><input type="date" id="emp-dianDate" class="form-control form-control-sm"></div>
+                  <div class="col-md-2"><label class="form-label small fw-semibold">Rango desde</label><input type="number" id="emp-rangeFrom" class="form-control form-control-sm" min="1"></div>
+                  <div class="col-md-2"><label class="form-label small fw-semibold">Rango hasta</label><input type="number" id="emp-rangeTo" class="form-control form-control-sm" min="1"></div>
+                  <div class="col-12"><label class="form-label small fw-semibold">Pie de página (ticket)</label><input type="text" id="emp-footer" class="form-control form-control-sm" placeholder="Gracias por su compra..."></div>
+                  <hr class="my-1">
+                  <div class="col-12 fw-semibold text-muted small"><i class="bi bi-envelope me-1"></i>Correo para recuperación de contraseña <span id="mail-status-badge" class="ms-2 badge bg-success d-none">Configurado</span></div>
+                  <div class="col-md-5"><label class="form-label small fw-semibold">Correo Gmail (remitente)</label><input type="email" id="emp-mailUser" class="form-control form-control-sm" placeholder="tucorreo@gmail.com"></div>
+                  <div class="col-md-4"><label class="form-label small fw-semibold">Contraseña de aplicación</label><input type="password" id="emp-mailPass" class="form-control form-control-sm" placeholder="xxxx xxxx xxxx xxxx" autocomplete="new-password"></div>
+                  <div class="col-md-3"><label class="form-label small fw-semibold">Nombre remitente</label><input type="text" id="emp-mailFrom" class="form-control form-control-sm" placeholder="Inventario Pro"></div>
+                  <div class="col-12"><div class="alert alert-info py-2 small mb-0"><i class="bi bi-info-circle me-1"></i>Usa una <strong>Contraseña de aplicación</strong> de Gmail (no tu contraseña normal). Genera una en <strong>myaccount.google.com/apppasswords</strong>.</div></div>
+                </div>
+                <div class="mt-3 text-end">
+                  <button class="btn btn-primary btn-sm" onclick="saveEmpresa()"><i class="bi bi-save me-1"></i>Guardar Configuración</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ DOCUMENTACIÓN ═══ -->
+      <section id="section-docs" class="d-none">
+        <div class="row justify-content-center">
+          <div class="col-lg-10">
+
+            <!-- Título -->
+            <div class="d-flex align-items-center gap-3 mb-4">
+              <div style="width:52px;height:52px;background:#0d6efd20;border-radius:14px;display:flex;align-items:center;justify-content:center">
+                <i class="bi bi-file-earmark-code fs-3 text-primary"></i>
+              </div>
+              <div>
+                <h3 class="mb-0 fw-bold">Documentaci&oacute;n T&eacute;cnica</h3>
+                <div class="text-muted small">Inventario Pro &mdash; Gu&iacute;a completa de instalaci&oacute;n y operaci&oacute;n</div>
+              </div>
+            </div>
+
+            <!-- ─── STACK ─── -->
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-header bg-primary text-white fw-semibold"><i class="bi bi-stack me-2"></i>Stack tecnol&oacute;gico</div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <table class="table table-sm mb-0">
+                      <thead class="table-light"><tr><th>Capa</th><th>Tecnolog&iacute;a</th><th>Versi&oacute;n</th></tr></thead>
+                      <tbody>
+                        <tr><td>Backend</td><td>Spring Boot</td><td class="text-primary fw-semibold">4.0.5</td></tr>
+                        <tr><td></td><td>Spring Framework</td><td>7.x</td></tr>
+                        <tr><td></td><td>Spring Security</td><td>6.x</td></tr>
+                        <tr><td></td><td>Spring Data JPA</td><td>4.x</td></tr>
+                        <tr><td></td><td>Java</td><td>17 (LTS)</td></tr>
+                        <tr><td></td><td>Lombok</td><td>1.18.x</td></tr>
+                        <tr><td></td><td>Maven</td><td>Wrapper incluido</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="col-md-6">
+                    <table class="table table-sm mb-0">
+                      <thead class="table-light"><tr><th>Capa</th><th>Tecnolog&iacute;a</th><th>Versi&oacute;n</th></tr></thead>
+                      <tbody>
+                        <tr><td>Base de datos</td><td>MySQL (v&iacute;a XAMPP)</td><td>8.x</td></tr>
+                        <tr><td>Frontend</td><td>HTML5 + JS Vanilla</td><td>&mdash;</td></tr>
+                        <tr><td></td><td>Bootstrap</td><td>5.3.2</td></tr>
+                        <tr><td></td><td>Bootstrap Icons</td><td>1.11.3</td></tr>
+                        <tr><td></td><td>Chart.js</td><td>4.4.3</td></tr>
+                        <tr><td></td><td>SheetJS (xlsx)</td><td>0.18.5</td></tr>
+                        <tr><td>Servidor estático</td><td>Spring MVC (Thymeleaf-less)</td><td>&mdash;</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── PUERTOS ─── -->
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-header bg-dark text-white fw-semibold"><i class="bi bi-diagram-3 me-2"></i>Puertos utilizados</div>
+              <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light"><tr><th>Puerto</th><th>Servicio</th><th>URL</th><th>Descripci&oacute;n</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="badge bg-primary fs-6">8080</span></td>
+                      <td><strong>Spring Boot App</strong></td>
+                      <td><code>http://localhost:8080</code></td>
+                      <td>Aplicaci&oacute;n principal. Login, API REST y frontend est&aacute;tico</td>
+                    </tr>
+                    <tr>
+                      <td><span class="badge bg-success fs-6">3306</span></td>
+                      <td><strong>MySQL (XAMPP)</strong></td>
+                      <td><code>localhost:3306</code></td>
+                      <td>Motor de base de datos. Accesible via phpMyAdmin o MySQL Workbench</td>
+                    </tr>
+                    <tr>
+                      <td><span class="badge bg-secondary fs-6">80</span></td>
+                      <td>Apache (XAMPP)</td>
+                      <td><code>http://localhost/phpmyadmin</code></td>
+                      <td>phpMyAdmin &mdash; administrador web de la base de datos. Apache <strong>no necesita estar activo</strong> si solo usas MySQL desde la app</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- ─── PRERREQUISITOS ─── -->
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-header bg-warning text-dark fw-semibold"><i class="bi bi-check-circle me-2"></i>Prerrequisitos</div>
+              <div class="card-body">
+                <ul class="mb-0">
+                  <li><strong>Java 17</strong> instalado y en el PATH del sistema (<code>java -version</code> debe mostrar 17.x)</li>
+                  <li><strong>XAMPP</strong> con el servicio <strong>MySQL activo</strong> (Apache es opcional)</li>
+                  <li>Base de datos <strong>inventario</strong> creada en MySQL (se crea una sola vez)</li>
+                  <li>No se necesita Maven instalado &mdash; el proyecto incluye <code>mvnw.cmd</code> (Maven Wrapper)</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- ─── PRIMERA VEZ ─── -->
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-header bg-success text-white fw-semibold"><i class="bi bi-rocket-takeoff me-2"></i>Levantar la aplicaci&oacute;n — primera vez</div>
+              <div class="card-body">
+                <p class="text-muted small mb-3">Estos pasos se ejecutan <strong>una sola vez</strong> para configurar la base de datos.</p>
+                <div class="mb-3">
+                  <div class="fw-semibold mb-1">1. Iniciar MySQL desde XAMPP Control Panel</div>
+                  <div class="text-muted small">Abrir XAMPP → hacer clic en <strong>Start</strong> en la fila de MySQL. El indicador se vuelve verde.</div>
+                </div>
+                <div class="mb-3">
+                  <div class="fw-semibold mb-1">2. Crear la base de datos en phpMyAdmin</div>
+                  <code class="d-block bg-dark text-success p-2 rounded mb-1">http://localhost/phpmyadmin</code>
+                  <div class="text-muted small">Ir a Nueva → escribir <strong>inventario</strong> → clic en Crear. Solo se hace una vez.</div>
+                </div>
+                <div class="mb-3">
+                  <div class="fw-semibold mb-1">3. Abrir terminal en la carpeta del proyecto</div>
+                  <code class="d-block bg-dark text-success p-2 rounded">cd C:\proyecto\task-manager\task-manager</code>
+                </div>
+                <div>
+                  <div class="fw-semibold mb-1">4. Ejecutar la aplicaci&oacute;n</div>
+                  <code class="d-block bg-dark text-success p-2 rounded mb-1">mvnw.cmd spring-boot:run</code>
+                  <div class="text-muted small">Spring Boot crea <strong>todas las tablas autom&aacute;ticamente</strong> gracias a <code>ddl-auto=update</code>. El usuario admin se crea solo.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── USO NORMAL ─── -->
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-header bg-primary text-white fw-semibold"><i class="bi bi-play-circle me-2"></i>Uso normal (d&iacute;a a d&iacute;a)</div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="fw-semibold mb-2">Iniciar la app</div>
+                    <ol class="mb-0">
+                      <li>Abrir XAMPP → <strong>Start MySQL</strong></li>
+                      <li>Abrir terminal en la carpeta del proyecto</li>
+                      <li>Ejecutar:<br><code class="bg-dark text-success px-2 py-1 rounded d-inline-block mt-1">mvnw.cmd spring-boot:run</code></li>
+                      <li>Esperar hasta ver:<br><code class="bg-dark text-warning px-2 py-1 rounded d-inline-block mt-1 small">Started TaskManagerApplication</code></li>
+                      <li>Abrir:<br><code class="bg-dark text-success px-2 py-1 rounded d-inline-block mt-1">http://localhost:8080</code></li>
+                    </ol>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="fw-semibold mb-2">Usuarios por defecto</div>
+                    <table class="table table-sm mb-0">
+                      <thead class="table-light"><tr><th>Usuario</th><th>Contrase&ntilde;a</th><th>Rol</th></tr></thead>
+                      <tbody>
+                        <tr><td><code>admin</code></td><td><code>admin123</code></td><td><span class="badge bg-danger">ADMIN</span></td></tr>
+                      </tbody>
+                    </table>
+                    <div class="text-muted small mt-2">El ADMIN puede crear usuarios SUPERVISOR y VENDEDOR desde el m&oacute;dulo de Usuarios.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── DETENER PROCESOS ─── -->
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-header bg-danger text-white fw-semibold"><i class="bi bi-stop-circle me-2"></i>Detener procesos — comandos en terminal</div>
+              <div class="card-body">
+                <div class="mb-4">
+                  <div class="fw-semibold mb-2">Detener la aplicaci&oacute;n Spring Boot</div>
+                  <div class="text-muted small mb-2">En la terminal donde est&aacute; corriendo:</div>
+                  <code class="d-block bg-dark text-danger p-2 rounded mb-2">Ctrl + C</code>
+                  <div class="text-muted small">Presionar <kbd>Ctrl</kbd>+<kbd>C</kbd> una vez. Windows preguntar&aacute; <em>"¿Desea terminar el archivo por lotes?"</em> → responder <strong>S</strong> y Enter.</div>
+                </div>
+                <div class="mb-4">
+                  <div class="fw-semibold mb-2">Si la terminal se cerr&oacute; y el puerto 8080 sigue ocupado</div>
+                  <div class="text-muted small mb-1">Buscar el proceso que ocupa el puerto:</div>
+                  <code class="d-block bg-dark text-success p-2 rounded mb-1">netstat -ano | findstr :8080</code>
+                  <div class="text-muted small mb-1">Ver la columna PID (el n&uacute;mero al final) y matar ese proceso:</div>
+                  <code class="d-block bg-dark text-danger p-2 rounded mb-1">taskkill /PID 12345 /F</code>
+                  <div class="text-muted small">Reemplazar <strong>12345</strong> con el PID real que mostr&oacute; el comando anterior.</div>
+                </div>
+                <div class="mb-4">
+                  <div class="fw-semibold mb-2">Detener MySQL desde XAMPP</div>
+                  <div class="text-muted small">XAMPP Control Panel → clic en <strong>Stop</strong> en la fila de MySQL.</div>
+                  <div class="alert alert-warning py-2 mt-2 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Siempre deten Spring Boot <strong>antes</strong> de apagar MySQL, de lo contrario la app lanzar&aacute; errores de conexi&oacute;n.</div>
+                </div>
+                <div>
+                  <div class="fw-semibold mb-2">Si necesitas limpiar y recompilar</div>
+                  <code class="d-block bg-dark text-success p-2 rounded mb-1">mvnw.cmd clean package</code>
+                  <div class="text-muted small">Genera un JAR ejecutable en <code>target/task-manager-0.0.1-SNAPSHOT.jar</code></div>
+                  <code class="d-block bg-dark text-success p-2 rounded mt-2 mb-1">java -jar target/task-manager-0.0.1-SNAPSHOT.jar</code>
+                  <div class="text-muted small">Alternativa para ejecutar sin Maven (por ejemplo en un servidor).</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── TROUBLESHOOTING ─── -->
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-header bg-secondary text-white fw-semibold"><i class="bi bi-tools me-2"></i>Problemas comunes y soluciones</div>
+              <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light"><tr><th>Error</th><th>Causa</th><th>Soluci&oacute;n</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><code class="text-danger">Communications link failure</code></td>
+                      <td>MySQL no est&aacute; corriendo</td>
+                      <td>Iniciar MySQL desde XAMPP antes de ejecutar la app</td>
+                    </tr>
+                    <tr>
+                      <td><code class="text-danger">Unknown database 'inventario'</code></td>
+                      <td>La BD no fue creada</td>
+                      <td>Crear la base de datos <strong>inventario</strong> en phpMyAdmin</td>
+                    </tr>
+                    <tr>
+                      <td><code class="text-danger">Port 8080 already in use</code></td>
+                      <td>La app ya est&aacute; corriendo o no se cerr&oacute; bien</td>
+                      <td>Ejecutar <code>netstat -ano | findstr :8080</code> y matar el PID</td>
+                    </tr>
+                    <tr>
+                      <td>Login dice usuario/clave incorrecto</td>
+                      <td>Hash de contrase&ntilde;a desactualizado en BD</td>
+                      <td>La app resetea admin autom&aacute;ticamente al iniciar. Si persiste: eliminar el usuario admin en phpMyAdmin y reiniciar</td>
+                    </tr>
+                    <tr>
+                      <td>Los datos no aparecen en el dashboard</td>
+                      <td>Error de JavaScript (consola del navegador)</td>
+                      <td>Presionar <kbd>F12</kbd> → pesta&ntilde;a Console → revisar el error en rojo</td>
+                    </tr>
+                    <tr>
+                      <td><code class="text-danger">Access Denied for user 'root'</code></td>
+                      <td>MySQL tiene contrase&ntilde;a</td>
+                      <td>Agregar la contrase&ntilde;a en <code>application.properties</code> en la l&iacute;nea <code>spring.datasource.password=tupassword</code></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- ─── EVALUACIÓN PROFESIONAL ─── -->
+            <div class="card border-0 shadow-sm mb-4" style="border-left:4px solid #0d6efd !important">
+              <div class="card-header fw-semibold" style="background:linear-gradient(135deg,#0d6efd15,#6610f215)"><i class="bi bi-award me-2 text-primary"></i>Evaluaci&oacute;n de calidad profesional</div>
+              <div class="card-body">
+
+                <!-- Puntuaciones -->
+                <div class="row g-3 mb-4">
+                  <div class="col-md-4 text-center">
+                    <div class="display-4 fw-bold text-primary">72</div>
+                    <div class="text-muted small">/ 100 puntos</div>
+                    <div class="fw-semibold mt-1">Nivel: <span class="text-primary">Intermedio-Profesional</span></div>
+                    <div class="text-muted small mt-1">Calificaci&oacute;n general</div>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="mb-2">
+                      <div class="d-flex justify-content-between small mb-1"><span>Arquitectura backend</span><span class="fw-semibold">85/100</span></div>
+                      <div class="progress" style="height:8px"><div class="progress-bar bg-success" style="width:85%"></div></div>
+                    </div>
+                    <div class="mb-2">
+                      <div class="d-flex justify-content-between small mb-1"><span>Modelado de datos</span><span class="fw-semibold">80/100</span></div>
+                      <div class="progress" style="height:8px"><div class="progress-bar bg-success" style="width:80%"></div></div>
+                    </div>
+                    <div class="mb-2">
+                      <div class="d-flex justify-content-between small mb-1"><span>Seguridad (Spring Security)</span><span class="fw-semibold">78/100</span></div>
+                      <div class="progress" style="height:8px"><div class="progress-bar bg-primary" style="width:78%"></div></div>
+                    </div>
+                    <div class="mb-2">
+                      <div class="d-flex justify-content-between small mb-1"><span>L&oacute;gica de negocio</span><span class="fw-semibold">75/100</span></div>
+                      <div class="progress" style="height:8px"><div class="progress-bar bg-primary" style="width:75%"></div></div>
+                    </div>
+                    <div class="mb-2">
+                      <div class="d-flex justify-content-between small mb-1"><span>Frontend / UX</span><span class="fw-semibold">65/100</span></div>
+                      <div class="progress" style="height:8px"><div class="progress-bar bg-warning" style="width:65%"></div></div>
+                    </div>
+                    <div class="mb-2">
+                      <div class="d-flex justify-content-between small mb-1"><span>Cobertura de pruebas</span><span class="fw-semibold">10/100</span></div>
+                      <div class="progress" style="height:8px"><div class="progress-bar bg-danger" style="width:10%"></div></div>
+                    </div>
+                    <div class="mb-0">
+                      <div class="d-flex justify-content-between small mb-1"><span>Preparaci&oacute;n para producci&oacute;n</span><span class="fw-semibold">45/100</span></div>
+                      <div class="progress" style="height:8px"><div class="progress-bar bg-warning" style="width:45%"></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Fortalezas -->
+                <div class="mb-4">
+                  <h6 class="fw-bold text-success mb-3"><i class="bi bi-check-circle-fill me-2"></i>Fortalezas</h6>
+                  <div class="row g-2">
+                    <div class="col-md-6">
+                      <div class="alert alert-success py-2 mb-2">
+                        <strong>Arquitectura en capas correcta</strong><br>
+                        <small>Controller → Service → Repository → Entity. Separaci&oacute;n clara de responsabilidades. Los DTOs protegen el modelo interno.</small>
+                      </div>
+                      <div class="alert alert-success py-2 mb-2">
+                        <strong>Spring Security bien implementado</strong><br>
+                        <small>Roles ADMIN/SUPERVISOR/VENDEDOR con restricciones por endpoint. BCrypt para contrase&ntilde;as. Sesi&oacute;n con formulario de login personalizado.</small>
+                      </div>
+                      <div class="alert alert-success py-2 mb-2">
+                        <strong>Manejo correcto de transacciones</strong><br>
+                        <small>@Transactional en operaciones que modifican m&uacute;ltiples tablas. Las ventas son at&oacute;micas: si falla el stock, nada se persiste.</small>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="alert alert-success py-2 mb-2">
+                        <strong>M&oacute;dulo de proveedores con an&aacute;lisis real</strong><br>
+                        <small>Promedios m&oacute;viles, regresi&oacute;n lineal simple con R², alertas inteligentes con cooldown, score multi-factor. V&aacute;lido como feature de producto comercial.</small>
+                      </div>
+                      <div class="alert alert-success py-2 mb-2">
+                        <strong>Cumplimiento fiscal colombiano</strong><br>
+                        <small>IVA (0%/5%/19%) por producto, resoluci&oacute;n DIAN, NIT con DV, numeraci&oacute;n secuencial sincronizada. Pocas apps peque&ntilde;as implementan esto.</small>
+                      </div>
+                      <div class="alert alert-success py-2 mb-2">
+                        <strong>Escalabilidad inmediata a producci&oacute;n</strong><br>
+                        <small>Cambiar H2 a PostgreSQL solo requiere 3 l&iacute;neas en application.properties. La arquitectura no necesita modificarse.</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Debilidades -->
+                <div class="mb-4">
+                  <h6 class="fw-bold text-danger mb-3"><i class="bi bi-x-circle-fill me-2"></i>Debilidades actuales</h6>
+                  <div class="row g-2">
+                    <div class="col-md-6">
+                      <div class="alert alert-danger py-2 mb-2">
+                        <strong>Sin pruebas automatizadas</strong><br>
+                        <small>No hay tests unitarios ni de integraci&oacute;n. En producci&oacute;n esto es un riesgo alto: cualquier cambio puede romper funcionalidad sin saberlo.</small>
+                      </div>
+                      <div class="alert alert-danger py-2 mb-2">
+                        <strong>Sin manejo de concurrencia en cajas</strong><br>
+                        <small>Si dos vendedores venden el mismo producto al mismo tiempo, el stock puede quedar incorrecto. Falta @Version (optimistic locking) en Product.</small>
+                      </div>
+                      <div class="alert alert-danger py-2 mb-2">
+                        <strong>Credenciales en texto plano</strong><br>
+                        <small>El usuario root de MySQL sin contrase&ntilde;a y la URL de conexi&oacute;n est&aacute;n en application.properties. En producci&oacute;n esto es un fallo de seguridad cr&iacute;tico.</small>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="alert alert-warning py-2 mb-2">
+                        <strong>Frontend monol&iacute;tico</strong><br>
+                        <small>Un solo archivo app.js de ~1000 l&iacute;neas que crece con cada m&oacute;dulo. Dif&iacute;cil de mantener a largo plazo. No hay separaci&oacute;n de componentes.</small>
+                      </div>
+                      <div class="alert alert-warning py-2 mb-2">
+                        <strong>Sin paginaci&oacute;n en listas</strong><br>
+                        <small>Todos los endpoints devuelven la lista completa. Con miles de productos o cotizaciones, las p&aacute;ginas se volver&aacute;n lentas.</small>
+                      </div>
+                      <div class="alert alert-warning py-2 mb-2">
+                        <strong>Sin logging estructurado</strong><br>
+                        <small>No hay registros de auditor&iacute;a de qui&eacute;n hizo qu&eacute; y cu&aacute;ndo. En un sistema de ventas esto es indispensable para soporte y trazabilidad.</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recomendaciones -->
+                <div>
+                  <h6 class="fw-bold text-primary mb-3"><i class="bi bi-lightbulb-fill me-2"></i>Recomendaciones por prioridad</h6>
+                  <div class="row g-3">
+                    <div class="col-md-4">
+                      <div class="card border-danger h-100">
+                        <div class="card-header bg-danger text-white small fw-semibold">Prioridad ALTA &mdash; antes de lanzar</div>
+                        <div class="card-body small">
+                          <p><strong>1. Mover credenciales a variables de entorno</strong><br>Usar <code>SPRING_DATASOURCE_PASSWORD</code> en el sistema en lugar de en el archivo de c&oacute;digo.</p>
+                          <p><strong>2. A&ntilde;adir @Version a Product</strong><br>Un campo <code>@Version Long version</code> previene condiciones de carrera en actualizaci&oacute;n de stock.</p>
+                          <p class="mb-0"><strong>3. Respaldo de base de datos</strong><br>Programar un dump de MySQL peri&oacute;dico con <code>mysqldump inventario &gt; backup.sql</code>.</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="card border-warning h-100">
+                        <div class="card-header bg-warning text-dark small fw-semibold">Prioridad MEDIA &mdash; pr&oacute;ximos sprints</div>
+                        <div class="card-body small">
+                          <p><strong>4. Tests de integraci&oacute;n</strong><br>Al menos 1 test por flujo cr&iacute;tico: crear venta, verificar descuento de stock, generar alerta.</p>
+                          <p><strong>5. Paginaci&oacute;n en API</strong><br>Cambiar <code>findAll()</code> por <code>findAll(Pageable)</code> en productos, ventas y cotizaciones.</p>
+                          <p class="mb-0"><strong>6. Separar app.js en m&oacute;dulos</strong><br>Ya se inici&oacute; con <code>proveedores.js</code>. Continuar con <code>ventas.js</code>, <code>inventario.js</code>, etc.</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="card border-success h-100">
+                        <div class="card-header bg-success text-white small fw-semibold">Prioridad BAJA &mdash; mejoras futuras</div>
+                        <div class="card-body small">
+                          <p><strong>7. Migrar frontend a React o Vue</strong><br>El backend REST ya est&aacute; listo para consumirse desde un SPA moderno sin cambios.</p>
+                          <p><strong>8. Notificaciones por email</strong><br>Spring Mail + Mailgun para enviar alertas de stock bajo y predicciones de precio al ADMIN.</p>
+                          <p class="mb-0"><strong>9. Deploy en la nube</strong><br>El JAR puede desplegarse en Railway, Render o EC2 con un cambio de datasource a PostgreSQL.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- ─── CONCLUSION ─── -->
+            <div class="card border-0 shadow-sm mb-4" style="background:linear-gradient(135deg,#0d6efd08,#6610f208)">
+              <div class="card-body">
+                <h6 class="fw-bold mb-2"><i class="bi bi-chat-quote me-2 text-primary"></i>Conclusi&oacute;n</h6>
+                <p class="mb-2">Esta aplicaci&oacute;n est&aacute; en un <strong>nivel intermedio-profesional real</strong>. No es un proyecto de estudio &mdash; tiene l&oacute;gica de negocio concreta, cumplimiento fiscal, an&aacute;lisis predictivo y control de acceso por roles. Muchos sistemas comerciales peque&ntilde;os para tiendas o PYMEs colombianas no tienen la mitad de estas funcionalidades.</p>
+                <p class="mb-2">Lo que la separa de una aplicaci&oacute;n <strong>100% enterprise</strong> es principalmente la falta de pruebas automatizadas, un manejo m&aacute;s robusto de errores concurrentes y configuraci&oacute;n segura de credenciales.</p>
+                <p class="mb-0 text-muted small">Con las mejoras de prioridad alta implementadas, esta aplicaci&oacute;n podr&iacute;a venderse o desplegarse para un negocio real sin problemas.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ PROVEEDORES ═══ -->
+      <section id="section-proveedores" class="d-none">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-3" id="prov-tabs">
+          <li class="nav-item"><a class="nav-link active" href="#" onclick="showProvTab('dashboard',this);return false"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="showProvTab('lista',this);return false"><i class="bi bi-truck me-1"></i>Proveedores</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="showProvTab('analisis',this);return false"><i class="bi bi-graph-up me-1"></i>Análisis</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="showProvTab('cotizaciones',this);return false"><i class="bi bi-receipt me-1"></i>Cotizaciones</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="showProvTab('eventos',this);return false"><i class="bi bi-calendar-event me-1"></i>Eventos</a></li>
+        </ul>
+
+        <!-- DASHBOARD TAB -->
+        <div id="prov-tab-dashboard">
+          <div class="row g-3 mb-3">
+            <div class="col-6 col-md-3"><div class="card border-0 shadow-sm"><div class="card-body d-flex align-items-center gap-3"><div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-truck fs-4"></i></div><div><div class="text-muted small">Proveedores</div><div class="fw-bold fs-4" id="prov-stat-total">—</div></div></div></div></div>
+            <div class="col-6 col-md-3"><div class="card border-0 shadow-sm"><div class="card-body d-flex align-items-center gap-3"><div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-bell fs-4"></i></div><div><div class="text-muted small">Alertas Activas</div><div class="fw-bold fs-4" id="prov-stat-alerts">—</div></div></div></div></div>
+            <div class="col-6 col-md-3"><div class="card border-0 shadow-sm"><div class="card-body d-flex align-items-center gap-3"><div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-arrow-down-circle fs-4"></i></div><div><div class="text-muted small">Oportunidades</div><div class="fw-bold fs-4" id="prov-stat-opps">—</div></div></div></div></div>
+            <div class="col-6 col-md-3"><div class="card border-0 shadow-sm"><div class="card-body d-flex align-items-center gap-3"><div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-exclamation-triangle fs-4"></i></div><div><div class="text-muted small">Margen en Riesgo</div><div class="fw-bold fs-4" id="prov-stat-margin">—</div></div></div></div></div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Alertas Críticas</div>
+                <div class="card-body p-0"><div class="list-group list-group-flush" id="prov-critical-alerts"></div></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold"><i class="bi bi-calendar-event text-primary me-2"></i>Próximos Eventos</div>
+                <div class="card-body p-0"><div class="list-group list-group-flush" id="prov-upcoming-events"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LISTA TAB -->
+        <div id="prov-tab-lista" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 fw-semibold">Proveedores Activos</h6>
+            <button class="btn btn-primary btn-sm" onclick="openSupplierModal()"><i class="bi bi-plus-lg"></i> Nuevo Proveedor</button>
+          </div>
+          <div class="card border-0 shadow-sm"><div class="card-body p-0"><div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light"><tr><th>Nombre</th><th>NIT</th><th>Ciudad</th><th>Contacto</th><th>Plazo</th><th>Lead Time</th><th>Rating</th><th>Productos</th><th>Acciones</th></tr></thead>
+              <tbody id="suppliers-tbody"></tbody>
+            </table>
+          </div></div></div>
+
+          <!-- Productos del proveedor seleccionado -->
+          <div id="supplier-products-panel" class="d-none mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0 fw-semibold">Productos de <span id="selected-supplier-name"></span></h6>
+              <button class="btn btn-outline-primary btn-sm" onclick="openSupplierProductModal()"><i class="bi bi-plus-lg"></i> Agregar Producto</button>
+            </div>
+            <div class="card border-0 shadow-sm"><div class="card-body p-0"><div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light"><tr><th>Producto</th><th>Código</th><th>Precio Actual</th><th>Mín. Histórico</th><th>Máx. Histórico</th><th>Últ. Cotización</th><th>Acciones</th></tr></thead>
+                <tbody id="supplier-products-tbody"></tbody>
+              </table>
+            </div></div></div>
+          </div>
+        </div>
+
+        <!-- ANÁLISIS TAB -->
+        <div id="prov-tab-analisis" class="d-none">
+          <div class="row g-3 mb-3">
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold">Buscar producto para analizar</label>
+              <select id="analysis-product-select" class="form-select form-select-sm" onchange="loadSupplierComparison()">
+                <option value="">— Selecciona un producto —</option>
+              </select>
+            </div>
+          </div>
+          <div id="comparison-table-container" class="d-none">
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-header bg-white fw-semibold"><i class="bi bi-bar-chart-line me-2"></i>Comparación de Proveedores</div>
+              <div class="card-body p-0"><div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light"><tr><th>Proveedor</th><th>Precio Actual</th><th>Min. Histórico</th><th>Tendencia</th><th>Volatilidad</th><th>Predicción 30d</th><th>Score</th><th>Alertas</th></tr></thead>
+                  <tbody id="comparison-tbody"></tbody>
+                </table>
+              </div></div>
+            </div>
+            <div id="analysis-detail" class="d-none">
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-semibold"><i class="bi bi-graph-up me-2 text-primary"></i>Historial de Precios — <span id="analysis-sp-name"></span></div>
+                    <div class="card-body"><canvas id="price-history-chart" height="120"></canvas></div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white fw-semibold">Indicadores</div>
+                    <div class="card-body small" id="analysis-indicators"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COTIZACIONES TAB -->
+        <div id="prov-tab-cotizaciones" class="d-none">
+          <div class="row g-3 mb-3">
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold">Relación proveedor-producto</label>
+              <select id="quote-sp-select" class="form-select form-select-sm" onchange="loadQuotes()">
+                <option value="">— Selecciona —</option>
+              </select>
+            </div>
+            <div class="col-md-7 d-flex align-items-end">
+              <button class="btn btn-primary btn-sm" onclick="openQuoteModal()" id="btn-add-quote" disabled><i class="bi bi-plus-lg"></i> Nueva Cotización</button>
+            </div>
+          </div>
+          <div class="card border-0 shadow-sm"><div class="card-body p-0"><div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light"><tr><th>Fecha</th><th>Precio</th><th>Variación</th><th>Origen</th><th>Nota</th><th>Válida</th></tr></thead>
+              <tbody id="quotes-tbody"></tbody>
+            </table>
+          </div></div></div>
+        </div>
+
+        <!-- EVENTOS TAB -->
+        <div id="prov-tab-eventos" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 fw-semibold">Eventos de Mercado</h6>
+            <button class="btn btn-primary btn-sm" onclick="openEventModal()"><i class="bi bi-plus-lg"></i> Nuevo Evento</button>
+          </div>
+          <div class="card border-0 shadow-sm"><div class="card-body p-0"><div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light"><tr><th>Tipo</th><th>Descripción</th><th>Inicio</th><th>Fin</th><th>Impacto</th><th>Intensidad</th><th>Estado</th></tr></thead>
+              <tbody id="events-tbody"></tbody>
+            </table>
+          </div></div></div>
+        </div>
+      </section>
+
+      <!-- ═══ USUARIOS ═══ -->
+      <section id="section-usuarios" class="d-none">
+        <ul class="nav nav-tabs mb-3" id="usuarios-tabs">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" onclick="showUsuariosTab('lista',this);return false">
+              <i class="bi bi-people me-1"></i>Usuarios
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showUsuariosTab('historial',this);return false">
+              <i class="bi bi-clock-history me-1"></i>Historial de Contraseñas
+            </a>
+          </li>
+        </ul>
+
+        <!-- Tab: Lista de usuarios -->
+        <div id="usuarios-tab-lista">
+          <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-primary btn-sm" onclick="openUserModal()"><i class="bi bi-plus-lg"></i> Nuevo Usuario</button>
+          </div>
+          <div class="card border-0 shadow-sm"><div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead class="table-light"><tr><th>Usuario</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <tbody id="users-tbody"></tbody>
+            </table>
+          </div></div>
+        </div>
+
+        <!-- Tab: Historial de cambios de contraseña -->
+        <div id="usuarios-tab-historial" class="d-none">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+              <span class="fw-semibold"><i class="bi bi-shield-lock text-primary me-2"></i>Historial de Recuperación de Contraseñas</span>
+              <button class="btn btn-sm btn-outline-secondary" onclick="loadPasswordLogs()">
+                <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+              </button>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Fecha y Hora</th>
+                      <th>Usuario</th>
+                      <th>Correo</th>
+                      <th>Acción</th>
+                      <th>IP</th>
+                    </tr>
+                  </thead>
+                  <tbody id="password-logs-tbody">
+                    <tr><td colspan="5" class="text-center text-muted py-4">Cargando...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ COMPRAS ═══ -->
+      <section id="section-compras" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <h6 class="fw-semibold mb-0"><i class="bi bi-bag-plus text-primary me-2"></i>Órdenes de Compra</h6>
+          <button class="btn btn-primary btn-sm" onclick="openPurchaseModal()"><i class="bi bi-plus-lg"></i> Nueva Orden</button>
+        </div>
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-0"><div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light"><tr><th>Orden</th><th>Proveedor</th><th>Creado por</th><th>Estado</th><th>Total</th><th>Fecha</th><th>Entrega Esperada</th><th>Acciones</th></tr></thead>
+              <tbody id="purchases-tbody"></tbody>
+            </table>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- ═══ AUDITORÍA ═══ -->
+      <section id="section-auditoria" class="d-none">
+
+        <!-- KPI Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-calendar-day fs-5"></i></div>
+                <div><div class="text-muted small">Eventos hoy</div><div class="fw-bold fs-4" id="audit-kpi-today">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="bi bi-calendar-week fs-5"></i></div>
+                <div><div class="text-muted small">Últimos 7 días</div><div class="fw-bold fs-4" id="audit-kpi-week">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-calendar-month fs-5"></i></div>
+                <div><div class="text-muted small">Últimos 30 días</div><div class="fw-bold fs-4" id="audit-kpi-month">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="stat-icon bg-secondary bg-opacity-10 text-secondary"><i class="bi bi-database fs-5"></i></div>
+                <div><div class="text-muted small">Total registros</div><div class="fw-bold fs-4" id="audit-kpi-total">—</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <!-- Filtros avanzados -->
+          <div class="col-12">
+            <div class="card border-0 shadow-sm">
+              <div class="card-body py-3">
+                <div class="d-flex flex-wrap gap-2 align-items-end">
+                  <div>
+                    <label class="form-label small fw-semibold mb-1">Desde</label>
+                    <input type="date" id="audit-from" class="form-control form-control-sm" style="width:140px">
+                  </div>
+                  <div>
+                    <label class="form-label small fw-semibold mb-1">Hasta</label>
+                    <input type="date" id="audit-to" class="form-control form-control-sm" style="width:140px">
+                  </div>
+                  <div>
+                    <label class="form-label small fw-semibold mb-1">Usuario</label>
+                    <input type="text" id="audit-filter-user" class="form-control form-control-sm" placeholder="Nombre de usuario…" style="width:160px">
+                  </div>
+                  <div>
+                    <label class="form-label small fw-semibold mb-1">Módulo</label>
+                    <select id="audit-filter-entity" class="form-select form-select-sm" style="width:160px">
+                      <option value="">— Todos —</option>
+                      <option value="Venta">Venta</option>
+                      <option value="Devolucion">Devolución</option>
+                      <option value="OrdenCompra">Orden de Compra</option>
+                      <option value="Producto">Producto</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="form-label small fw-semibold mb-1">Acción</label>
+                    <select id="audit-filter-action" class="form-select form-select-sm" style="width:185px">
+                      <option value="">— Todas —</option>
+                      <option value="VENTA_CREADA">VENTA_CREADA</option>
+                      <option value="DEVOLUCION_SOLICITADA">DEVOLUCION_SOLICITADA</option>
+                      <option value="DEVOLUCION_APROBADA">DEVOLUCION_APROBADA</option>
+                      <option value="DEVOLUCION_RECHAZADA">DEVOLUCION_RECHAZADA</option>
+                      <option value="COMPRA_CREADA">COMPRA_CREADA</option>
+                      <option value="COMPRA_RECIBIDA">COMPRA_RECIBIDA</option>
+                      <option value="COMPRA_CANCELADA">COMPRA_CANCELADA</option>
+                    </select>
+                  </div>
+                  <div class="d-flex gap-2 ms-auto align-items-end">
+                    <button class="btn btn-sm btn-primary" onclick="searchAuditLogs()"><i class="bi bi-search me-1"></i>Buscar</button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearAuditFilters()"><i class="bi bi-x-circle me-1"></i>Limpiar</button>
+                    <button class="btn btn-sm btn-success" onclick="exportAuditExcel()"><i class="bi bi-file-earmark-excel me-1"></i>Excel Profesional</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <!-- Tabla principal -->
+          <div class="col-xl-9">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+                <span class="fw-semibold"><i class="bi bi-shield-check text-primary me-2"></i>Trazabilidad de Eventos</span>
+                <span class="badge bg-secondary" id="audit-count-badge">—</span>
+              </div>
+              <div class="card-body p-0"><div class="table-responsive">
+                <table class="table table-sm table-hover mb-0" style="font-size:.82rem">
+                  <thead class="table-dark">
+                    <tr>
+                      <th style="width:32px">#</th>
+                      <th style="width:130px">Fecha / Hora</th>
+                      <th style="width:85px">Usuario</th>
+                      <th style="width:55px">Rol</th>
+                      <th style="width:80px">Severidad</th>
+                      <th>Acción</th>
+                      <th style="width:90px">Módulo</th>
+                      <th style="width:45px">Ref.</th>
+                      <th>Detalle contable</th>
+                      <th style="width:90px">IP Origen</th>
+                      <th style="width:32px"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="audit-tbody"></tbody>
+                </table>
+              </div></div>
+              <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-outline-secondary" id="audit-prev-btn" onclick="loadAuditPage(-1)" disabled><i class="bi bi-chevron-left"></i></button>
+                  <span class="small text-muted align-self-center" id="audit-page-info">Pág. 1</span>
+                  <button class="btn btn-sm btn-outline-secondary" id="audit-next-btn" onclick="loadAuditPage(1)"><i class="bi bi-chevron-right"></i></button>
+                </div>
+                <span class="text-muted small" id="audit-range-info"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel lateral de resumen -->
+          <div class="col-xl-3">
+            <!-- Por acción -->
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-header bg-white fw-semibold py-2" style="font-size:.82rem"><i class="bi bi-bar-chart-fill text-primary me-1"></i>Eventos por Tipo</div>
+              <div class="card-body p-0">
+                <ul class="list-group list-group-flush" id="audit-by-action"></ul>
+              </div>
+            </div>
+            <!-- Por módulo -->
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-header bg-white fw-semibold py-2" style="font-size:.82rem"><i class="bi bi-layers text-info me-1"></i>Eventos por Módulo</div>
+              <div class="card-body p-0">
+                <ul class="list-group list-group-flush" id="audit-by-entity"></ul>
+              </div>
+            </div>
+            <!-- Top usuarios semana -->
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white fw-semibold py-2" style="font-size:.82rem"><i class="bi bi-people-fill text-success me-1"></i>Usuarios más activos (7 días)</div>
+              <div class="card-body p-0">
+                <ul class="list-group list-group-flush" id="audit-top-users"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Producto -->
+<div class="modal fade" id="modalProduct" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="modal-product-title">Nuevo Producto</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><input type="hidden" id="product-id">
+    <div class="row g-2">
+      <div class="col-12"><label class="form-label small fw-semibold">Nombre *</label><input type="text" id="product-name" class="form-control form-control-sm"></div>
+      <div class="col-12"><label class="form-label small fw-semibold">Descripción</label><input type="text" id="product-desc" class="form-control form-control-sm"></div>
+      <div class="col-6"><label class="form-label small fw-semibold">Categoría</label><select id="product-category" class="form-select form-select-sm"></select></div>
+      <div class="col-6"><label class="form-label small fw-semibold">Unidad</label><input type="text" id="product-unit" class="form-control form-control-sm" placeholder="unidad, kg, litro..."></div>
+      <div class="col-6"><label class="form-label small fw-semibold">Código de barras</label><input type="text" id="product-barcode" class="form-control form-control-sm" placeholder="EAN, UPC, interno..."></div>
+      <div class="col-3"><label class="form-label small fw-semibold">IVA %</label>
+        <select id="product-taxrate" class="form-select form-select-sm"><option value="19">19%</option><option value="5">5%</option><option value="0">0%</option></select>
+      </div>
+      <div class="col-3"><label class="form-label small fw-semibold">Precio *</label><input type="number" id="product-price" class="form-control form-control-sm" min="0" step="0.01"></div>
+      <div class="col-3"><label class="form-label small fw-semibold">Stock *</label><input type="number" id="product-stock" class="form-control form-control-sm" min="0"></div>
+      <div class="col-3"><label class="form-label small fw-semibold">Stock Mínimo *</label><input type="number" id="product-minstock" class="form-control form-control-sm" min="0"></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveProduct()">Guardar</button></div>
+</div></div></div>
+
+<!-- MODAL: Ajustar Stock -->
+<div class="modal fade" id="modalStock" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Ajustar Stock</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><input type="hidden" id="stock-product-id">
+    <p class="small text-muted fw-semibold mb-3" id="stock-product-name"></p>
+    <div class="mb-2"><label class="form-label small fw-semibold">Tipo</label>
+      <select id="stock-type" class="form-select form-select-sm"><option value="ENTRY">Entrada — agregar</option><option value="EXIT">Salida — quitar</option><option value="ADJUSTMENT">Ajuste — cantidad exacta</option></select>
+    </div>
+    <div class="mb-2"><label class="form-label small fw-semibold">Cantidad</label><input type="number" id="stock-qty" class="form-control form-control-sm" min="0"></div>
+    <div class="mb-2"><label class="form-label small fw-semibold">Motivo</label><input type="text" id="stock-reason" class="form-control form-control-sm"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveStockAdjust()">Aplicar</button></div>
+</div></div></div>
+
+<!-- MODAL: Cliente -->
+<div class="modal fade" id="modalCustomer" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="modal-customer-title">Nuevo Cliente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><input type="hidden" id="customer-id">
+    <div class="row g-2">
+      <div class="col-12"><label class="form-label small fw-semibold">Nombre completo *</label><input type="text" id="customer-name" class="form-control form-control-sm"></div>
+      <div class="col-6"><label class="form-label small fw-semibold">Documento (NIT/Cédula)</label><input type="text" id="customer-doc" class="form-control form-control-sm"></div>
+      <div class="col-6"><label class="form-label small fw-semibold">Teléfono</label><input type="text" id="customer-phone" class="form-control form-control-sm"></div>
+      <div class="col-12"><label class="form-label small fw-semibold">Email</label><input type="email" id="customer-email" class="form-control form-control-sm"></div>
+      <div class="col-12"><label class="form-label small fw-semibold">Dirección</label><input type="text" id="customer-address" class="form-control form-control-sm"></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveCustomer()">Guardar</button></div>
+</div></div></div>
+
+<!-- MODAL: Caja -->
+<div class="modal fade" id="modalCaja" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Abrir Caja</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="mb-2"><label class="form-label small fw-semibold">Nombre de la caja *</label><input type="text" id="caja-name" class="form-control form-control-sm" placeholder="Ej: Caja 1"></div>
+    <div class="mb-2" id="caja-seller-row"><label class="form-label small fw-semibold">Vendedor asignado</label><select id="caja-seller" class="form-select form-select-sm"><option value="">— Sin asignar —</option></select></div>
+    <div class="mb-2"><label class="form-label small fw-semibold">Efectivo inicial *</label><input type="number" id="caja-initial" class="form-control form-control-sm" min="0" step="0.01" value="0"></div>
+    <div class="mb-2"><label class="form-label small fw-semibold">Notas</label><input type="text" id="caja-notes" class="form-control form-control-sm"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-success btn-sm" onclick="saveCaja()">Abrir Caja</button></div>
+</div></div></div>
+
+<!-- MODAL: Categoría -->
+<div class="modal fade" id="modalCategory" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="modal-cat-title">Nueva Categoría</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><input type="hidden" id="cat-id">
+    <div class="mb-2"><label class="form-label small fw-semibold">Nombre *</label><input type="text" id="cat-name" class="form-control form-control-sm"></div>
+    <div class="mb-2"><label class="form-label small fw-semibold">Descripción</label><input type="text" id="cat-desc" class="form-control form-control-sm"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveCategory()">Guardar</button></div>
+</div></div></div>
+
+<!-- MODAL: Usuario -->
+<div class="modal fade" id="modalUser" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="modal-user-title">Nuevo Usuario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><input type="hidden" id="user-id">
+    <div class="mb-2"><label class="form-label small fw-semibold">Usuario *</label><input type="text" id="user-username" class="form-control form-control-sm"></div>
+    <div class="mb-2"><label class="form-label small fw-semibold">Nombre completo *</label><input type="text" id="user-fullname" class="form-control form-control-sm"></div>
+    <div class="mb-2"><label class="form-label small fw-semibold">Correo electrónico <span class="text-muted fw-normal">(para recuperar contraseña)</span></label><input type="email" id="user-email" class="form-control form-control-sm" placeholder="correo@ejemplo.com"></div>
+    <div class="mb-2"><label class="form-label small fw-semibold">Contraseña</label><input type="password" id="user-password" class="form-control form-control-sm" placeholder="Dejar vacío para no cambiar"></div>
+    <div class="mb-2"><label class="form-label small fw-semibold">Rol *</label>
+      <select id="user-role" class="form-select form-select-sm">
+        <option value="VENDEDOR">Vendedor</option>
+        <option value="SUPERVISOR">Supervisor</option>
+        <option value="ADMIN">Administrador</option>
+      </select>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveUser()">Guardar</button></div>
+</div></div></div>
+
+<!-- MODAL: Mi Perfil -->
+<div class="modal fade" id="modalProfile" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content" style="border-radius:16px;overflow:hidden;border:none">
+  <div class="modal-header border-0 pb-0" style="background:linear-gradient(135deg,#1a2540,#2d3f6e);padding:24px 28px 16px">
+    <div class="d-flex align-items-center gap-3">
+      <div style="width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="bi bi-person-vcard-fill text-white fs-4"></i>
+      </div>
+      <div>
+        <h5 class="modal-title text-white mb-0 fw-bold">Mi Perfil</h5>
+        <small id="profile-role-label" class="text-white opacity-75"></small>
+      </div>
+    </div>
+    <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+  </div>
+
+  <div class="modal-body p-0">
+    <!-- Tabs -->
+    <ul class="nav nav-tabs nav-fill border-bottom px-3 pt-2 bg-white" id="profile-tabs">
+      <li class="nav-item"><a class="nav-link active small fw-semibold" href="#" onclick="showProfileTab('personal',this);return false"><i class="bi bi-person me-1"></i>Personal</a></li>
+      <li class="nav-item"><a class="nav-link small fw-semibold" href="#" onclick="showProfileTab('ubicacion',this);return false"><i class="bi bi-geo-alt me-1"></i>Ubicación</a></li>
+      <li class="nav-item"><a class="nav-link small fw-semibold" href="#" onclick="showProfileTab('emergencia',this);return false"><i class="bi bi-heart-pulse me-1"></i>Emergencia</a></li>
+    </ul>
+
+    <div class="p-4">
+
+      <!-- TAB: Personal -->
+      <div id="ptab-personal">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Nombre completo <span class="text-danger">*</span></label>
+            <input type="text" id="pf-fullName" class="form-control form-control-sm" placeholder="Nombre completo">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Correo electrónico</label>
+            <input type="email" id="pf-email" class="form-control form-control-sm" placeholder="correo@ejemplo.com">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Teléfono</label>
+            <input type="text" id="pf-phone" class="form-control form-control-sm" placeholder="Ej: 3001234567">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Fecha de nacimiento</label>
+            <input type="date" id="pf-birthDate" class="form-control form-control-sm">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Tipo de sangre</label>
+            <select id="pf-bloodType" class="form-select form-select-sm">
+              <option value="">— Seleccionar —</option>
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>O+</option><option>O-</option>
+              <option>AB+</option><option>AB-</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Cargo / Puesto</label>
+            <input type="text" id="pf-position" class="form-control form-control-sm" placeholder="Ej: Jefe de ventas">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Tipo de documento</label>
+            <select id="pf-documentType" class="form-select form-select-sm">
+              <option value="">— Seleccionar —</option>
+              <option value="CC">Cédula de Ciudadanía</option>
+              <option value="CE">Cédula de Extranjería</option>
+              <option value="TI">Tarjeta de Identidad</option>
+              <option value="Pasaporte">Pasaporte</option>
+              <option value="NIT">NIT</option>
+            </select>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label small fw-semibold">Número de documento</label>
+            <input type="text" id="pf-documentNumber" class="form-control form-control-sm" placeholder="Número de documento">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Notas internas</label>
+            <textarea id="pf-notes" class="form-control form-control-sm" rows="2" placeholder="Observaciones o información adicional..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Ubicación -->
+      <div id="ptab-ubicacion" class="d-none">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Dirección</label>
+            <input type="text" id="pf-address" class="form-control form-control-sm" placeholder="Calle, número, barrio...">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Ciudad</label>
+            <input type="text" id="pf-city" class="form-control form-control-sm" placeholder="Ciudad de residencia">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Departamento</label>
+            <input type="text" id="pf-department" class="form-control form-control-sm" placeholder="Departamento">
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Emergencia -->
+      <div id="ptab-emergencia" class="d-none">
+        <div class="alert alert-warning py-2 small mb-4" style="border-radius:10px">
+          <i class="bi bi-heart-pulse me-1"></i><strong>Contacto de emergencia</strong> — Esta información se usará en caso de accidente o emergencia.
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Nombre del contacto</label>
+            <input type="text" id="pf-emergencyName" class="form-control form-control-sm" placeholder="Nombre completo">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Teléfono</label>
+            <input type="text" id="pf-emergencyPhone" class="form-control form-control-sm" placeholder="Número de contacto">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Relación</label>
+            <select id="pf-emergencyRelation" class="form-select form-select-sm">
+              <option value="">— Seleccionar —</option>
+              <option>Cónyuge</option>
+              <option>Padre / Madre</option>
+              <option>Hijo/a</option>
+              <option>Hermano/a</option>
+              <option>Familiar</option>
+              <option>Amigo/a</option>
+              <option>Colega</option>
+              <option>Otro</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmación con contraseña -->
+      <hr class="my-4">
+      <div class="p-3 rounded-3" style="background:#fff8f0;border:1.5px solid #ffd6a5">
+        <label class="form-label small fw-semibold"><i class="bi bi-lock me-1 text-warning"></i>Contraseña actual — requerida para guardar cambios</label>
+        <input type="password" id="pf-password" class="form-control form-control-sm" placeholder="Ingresa tu contraseña para confirmar" autocomplete="current-password">
+      </div>
+
+      <div id="pf-alert" class="mt-3 d-none"></div>
+    </div>
+  </div>
+
+  <div class="modal-footer border-0 pt-0">
+    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+    <button class="btn btn-primary btn-sm px-4" id="pf-save-btn" onclick="saveProfile()">
+      <i class="bi bi-check2-circle me-1"></i>Guardar cambios
+    </button>
+  </div>
+</div></div></div>
+
+<!-- MODAL: Cambiar Contraseña -->
+<div class="modal fade" id="modalChangePassword" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content">
+  <div class="modal-header" style="background:linear-gradient(135deg,#1a2540,#2d3f6e)">
+    <h5 class="modal-title text-white"><i class="bi bi-shield-lock me-2"></i>Cambiar contraseña</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  </div>
+  <div class="modal-body">
+    <p class="text-muted small mb-3">Ingresa tu contraseña actual y la nueva contraseña.</p>
+    <div class="mb-2">
+      <label class="form-label small fw-semibold">Contraseña actual</label>
+      <input type="password" id="cp-current" class="form-control form-control-sm" placeholder="Contraseña actual" autocomplete="current-password">
+    </div>
+    <div class="mb-2">
+      <label class="form-label small fw-semibold">Nueva contraseña</label>
+      <input type="password" id="cp-new" class="form-control form-control-sm" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+    </div>
+    <div class="mb-2">
+      <label class="form-label small fw-semibold">Confirmar nueva contraseña</label>
+      <input type="password" id="cp-confirm" class="form-control form-control-sm" placeholder="Repite la nueva contraseña" autocomplete="new-password">
+    </div>
+    <div id="cp-alert" class="d-none mt-2"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+    <button class="btn btn-primary btn-sm" onclick="doChangePassword()"><i class="bi bi-check2-circle me-1"></i>Cambiar</button>
+  </div>
+</div></div></div>
+
+<!-- MODAL: Detalle Venta -->
+<div class="modal fade" id="modalSaleDetail" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Detalle de Venta</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body" id="sale-detail-body"></div>
+  <div class="modal-footer">
+    <button class="btn btn-outline-secondary btn-sm" onclick="printTicket()"><i class="bi bi-printer me-1"></i>Ticket</button>
+    <button class="btn btn-outline-primary btn-sm" onclick="printFactura()"><i class="bi bi-file-earmark-text me-1"></i>Factura</button>
+    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+  </div>
+</div></div></div>
+
+<!-- MODAL: Detalle Devolución -->
+<div class="modal fade" id="modalReturnDetail" tabindex="-1"><div class="modal-dialog modal-md"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Detalle de Devolución</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body" id="return-detail-body"></div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button></div>
+</div></div></div>
+
+<!-- MODAL: Rechazar Devolución -->
+<div class="modal fade" id="modalRejectReturn" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title text-danger"><i class="bi bi-x-circle me-2"></i>Rechazar Solicitud</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="reject-return-id">
+    <label class="form-label small fw-semibold">Motivo del rechazo *</label>
+    <textarea id="reject-reason-input" class="form-control form-control-sm" rows="3" placeholder="Explica el motivo del rechazo..."></textarea>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+    <button class="btn btn-danger btn-sm" onclick="confirmRejectReturn()"><i class="bi bi-x-circle me-1"></i>Rechazar</button>
+  </div>
+</div></div></div>
+
+<!-- MODAL: Orden de Compra -->
+<div class="modal fade" id="modalPurchase" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Nueva Orden de Compra</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="row g-2 mb-3">
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">Proveedor</label>
+        <select id="purchase-supplier" class="form-select form-select-sm"><option value="">— Sin proveedor —</option></select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Fecha entrega esperada</label>
+        <input type="date" id="purchase-delivery-date" class="form-control form-control-sm">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Notas</label>
+        <input type="text" id="purchase-notes" class="form-control form-control-sm" placeholder="Opcional">
+      </div>
+    </div>
+    <hr class="my-2">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="fw-semibold small">Productos</span>
+      <button class="btn btn-sm btn-outline-primary" onclick="addPurchaseItemRow()"><i class="bi bi-plus-lg"></i> Agregar</button>
+    </div>
+    <table class="table table-sm mb-2">
+      <thead class="table-light"><tr><th>Producto</th><th style="width:80px">Cantidad</th><th style="width:120px">Costo unit.</th><th style="width:100px">Subtotal</th><th></th></tr></thead>
+      <tbody id="purchase-items-tbody"></tbody>
+    </table>
+    <div class="text-end fw-bold">Total: <span id="purchase-total-preview" class="text-primary">$0.00</span></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+    <button class="btn btn-primary btn-sm" onclick="savePurchaseOrder()"><i class="bi bi-check-lg me-1"></i>Crear Orden</button>
+  </div>
+</div></div></div>
+
+<!-- MODAL: Proveedor -->
+<div class="modal fade" id="modalSupplier" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="modal-supplier-title">Nuevo Proveedor</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><input type="hidden" id="supplier-id">
+    <div class="row g-2">
+      <div class="col-md-6"><label class="form-label small fw-semibold">Nombre *</label><input type="text" id="supplier-name" class="form-control form-control-sm"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">NIT</label><input type="text" id="supplier-nit" class="form-control form-control-sm"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Rating (1-5)</label><input type="number" id="supplier-rating" class="form-control form-control-sm" min="1" max="5" step="0.5" value="3"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Contacto</label><input type="text" id="supplier-contact" class="form-control form-control-sm"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Email</label><input type="email" id="supplier-email" class="form-control form-control-sm"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Teléfono</label><input type="text" id="supplier-phone" class="form-control form-control-sm"></div>
+      <div class="col-md-6"><label class="form-label small fw-semibold">Ciudad</label><input type="text" id="supplier-city" class="form-control form-control-sm"></div>
+      <div class="col-md-6"><label class="form-label small fw-semibold">Dirección</label><input type="text" id="supplier-address" class="form-control form-control-sm"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Plazo de pago (días)</label><input type="number" id="supplier-payment" class="form-control form-control-sm" min="0" value="0"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Lead Time (días)</label><input type="number" id="supplier-lead" class="form-control form-control-sm" min="1" value="1"></div>
+      <div class="col-12"><label class="form-label small fw-semibold">Notas</label><textarea id="supplier-notes" class="form-control form-control-sm" rows="2"></textarea></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveSupplier()">Guardar</button></div>
+</div></div></div>
+
+<!-- MODAL: Relación Proveedor-Producto -->
+<div class="modal fade" id="modalSupplierProduct" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Agregar Producto al Proveedor</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="sp-supplier-id">
+    <div class="mb-2"><label class="form-label small fw-semibold">Producto *</label><select id="sp-product-id" class="form-select form-select-sm"></select></div>
+    <div class="row g-2">
+      <div class="col-6"><label class="form-label small fw-semibold">Precio actual</label><input type="number" id="sp-price" class="form-control form-control-sm" min="0" step="0.01"></div>
+      <div class="col-6"><label class="form-label small fw-semibold">Cant. mínima pedido</label><input type="number" id="sp-min-qty" class="form-control form-control-sm" min="1" value="1"></div>
+      <div class="col-8"><label class="form-label small fw-semibold">Código del proveedor</label><input type="text" id="sp-code" class="form-control form-control-sm"></div>
+      <div class="col-4 d-flex align-items-end"><div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="sp-preferred"><label class="form-check-label small" for="sp-preferred">Preferido</label></div></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveSupplierProduct()">Agregar</button></div>
+</div></div></div>
+
+<!-- MODAL: Cotización -->
+<div class="modal fade" id="modalQuote" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Nueva Cotización</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <p class="small text-muted fw-semibold mb-3" id="quote-sp-label"></p>
+    <div class="mb-2"><label class="form-label small fw-semibold">Precio *</label><input type="number" id="quote-price" class="form-control form-control-sm" min="0.01" step="0.01"></div>
+    <div class="mb-2"><label class="form-label small fw-semibold">Nota</label><input type="text" id="quote-note" class="form-control form-control-sm" placeholder="Condición, descuento, etc."></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-success btn-sm" onclick="saveQuote()">Registrar</button></div>
+</div></div></div>
+
+<!-- MODAL: Evento -->
+<div class="modal fade" id="modalEvent" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Nuevo Evento de Mercado</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="row g-2">
+      <div class="col-md-6"><label class="form-label small fw-semibold">Tipo *</label>
+        <select id="event-type" class="form-select form-select-sm">
+          <option value="TEMPORADA_ALTA">Temporada Alta</option>
+          <option value="ESCASEZ">Escasez</option>
+          <option value="PARO">Paro / Huelga</option>
+          <option value="FERIA">Feria / Descuento</option>
+          <option value="COSECHA">Cosecha / Producción</option>
+          <option value="OTRO">Otro</option>
+        </select>
+      </div>
+      <div class="col-md-6"><label class="form-label small fw-semibold">Intensidad</label>
+        <select id="event-intensity" class="form-select form-select-sm">
+          <option value="BAJA">Baja</option>
+          <option value="MEDIA" selected>Media</option>
+          <option value="ALTA">Alta</option>
+        </select>
+      </div>
+      <div class="col-12"><label class="form-label small fw-semibold">Descripción *</label><input type="text" id="event-desc" class="form-control form-control-sm"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Fecha inicio *</label><input type="date" id="event-start" class="form-control form-control-sm"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Fecha fin</label><input type="date" id="event-end" class="form-control form-control-sm"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Impacto esperado</label>
+        <select id="event-impact" class="form-select form-select-sm">
+          <option value="">Sin especificar</option>
+          <option value="SUBE_PRECIO">Sube precio</option>
+          <option value="BAJA_PRECIO">Baja precio</option>
+          <option value="AUMENTA_DEMANDA">Aumenta demanda</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveEvent()">Guardar</button></div>
+</div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script src="js/proveedores.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

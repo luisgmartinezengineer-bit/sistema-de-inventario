@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión — Inventario Pro</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #1a2540 0%, #2d3f6e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 460px;
+      border-radius: 20px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+      border: none;
+      overflow: hidden;
+    }
+    .login-header {
+      background: linear-gradient(135deg, #1a2540, #2d3f6e);
+      color: white;
+      text-align: center;
+      padding: 32px 24px 24px;
+    }
+    .login-header i { font-size: 2.8rem; }
+
+    /* Tarjetas de rol */
+    .role-card {
+      cursor: pointer;
+      border: 2px solid #dee2e6;
+      border-radius: 14px;
+      padding: 14px 10px;
+      text-align: center;
+      transition: all 0.2s;
+      background: #fff;
+      user-select: none;
+    }
+    .role-card:hover { border-color: #adb5bd; background: #f8f9fa; }
+    .role-card.selected-admin    { border-color: #dc3545; background: #fff5f5; }
+    .role-card.selected-supervisor { border-color: #fd7e14; background: #fff8f0; }
+    .role-card.selected-vendedor { border-color: #0d6efd; background: #f0f4ff; }
+    .role-card i { font-size: 1.8rem; }
+    .role-card .role-name { font-size: 0.78rem; font-weight: 600; margin-top: 6px; }
+
+    /* Paso 2: elegir usuario */
+    .user-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid #dee2e6;
+      border-radius: 12px;
+      cursor: pointer;
+      background: #fff;
+      transition: all 0.15s;
+      width: 100%;
+      text-align: left;
+    }
+    .user-btn:hover { border-color: #adb5bd; background: #f8f9fa; }
+    .user-btn.selected { border-color: var(--role-color, #0d6efd); background: var(--role-bg, #f0f4ff); }
+    .user-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1rem; color: white;
+      flex-shrink: 0;
+    }
+
+    /* Formulario */
+    .form-control, .form-select {
+      border-radius: 10px;
+      padding: 11px 16px;
+      border: 1.5px solid #dee2e6;
+    }
+    .form-control:focus { border-color: #4f8ef7; box-shadow: 0 0 0 3px rgba(79,142,247,0.15); }
+    .input-group-text { background: #f8f9fa; border: 1.5px solid #dee2e6; border-right: none; }
+    .btn-login { border: none; padding: 12px; font-size: 1rem; font-weight: 600; border-radius: 12px; transition: opacity 0.2s; }
+    .btn-login:hover { opacity: 0.9; }
+
+    .step { display: none; }
+    .step.active { display: block; }
+    .step-indicator { font-size: 0.78rem; color: #6c757d; }
+  </style>
+</head>
+<body>
+<div class="login-card card">
+  <div class="login-header">
+    <i class="bi bi-boxes"></i>
+    <h4 class="mt-2 mb-1 fw-bold">Inventario Pro</h4>
+    <p class="mb-0 opacity-75 small">Sistema de Gestión</p>
+  </div>
+
+  <div class="p-4">
+    <div id="error-msg" class="alert alert-danger rounded-3 d-none mb-3" style="font-size:.9rem">
+      <i class="bi bi-exclamation-circle me-2"></i>Usuario o contraseña incorrectos
+    </div>
+    <div id="logout-msg" class="alert alert-success rounded-3 d-none mb-3" style="font-size:.9rem">
+      <i class="bi bi-check-circle me-2"></i>Sesión cerrada correctamente
+    </div>
+
+    <!-- PASO 1: Seleccionar rol -->
+    <div class="step active" id="step1">
+      <p class="fw-semibold mb-3 text-center" style="color:#1a2540">¿Con qué perfil ingresas?</p>
+      <div class="row g-2 mb-4">
+        <div class="col-4">
+          <div class="role-card" onclick="selectRole('ADMIN',this)" id="card-ADMIN">
+            <i class="bi bi-shield-lock text-danger"></i>
+            <div class="role-name text-danger">Administrador</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="role-card" onclick="selectRole('SUPERVISOR',this)" id="card-SUPERVISOR">
+            <i class="bi bi-binoculars" style="color:#fd7e14"></i>
+            <div class="role-name" style="color:#fd7e14">Supervisor</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="role-card" onclick="selectRole('VENDEDOR',this)" id="card-VENDEDOR">
+            <i class="bi bi-person-badge text-primary"></i>
+            <div class="role-name text-primary">Vendedor</div>
+          </div>
+        </div>
+      </div>
+      <p class="text-center text-muted" style="font-size:.8rem" id="step1-hint">Selecciona tu perfil para continuar</p>
+    </div>
+
+    <!-- PASO 2: Seleccionar usuario -->
+    <div class="step" id="step2">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <button class="btn btn-sm btn-outline-secondary rounded-circle p-0" style="width:30px;height:30px" onclick="goBack()"><i class="bi bi-arrow-left"></i></button>
+        <span class="fw-semibold" id="step2-title">Selecciona tu usuario</span>
+      </div>
+      <div id="users-list" class="d-flex flex-column gap-2 mb-2" style="max-height:240px;overflow-y:auto"></div>
+      <p class="text-muted text-center mt-2 d-none" id="no-users-msg" style="font-size:.85rem">No hay usuarios con este perfil</p>
+    </div>
+
+    <!-- PASO 3: Contraseña -->
+    <div class="step" id="step3">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <button class="btn btn-sm btn-outline-secondary rounded-circle p-0" style="width:30px;height:30px" onclick="goBackToUsers()"><i class="bi bi-arrow-left"></i></button>
+        <div>
+          <span class="fw-semibold" id="step3-name"></span>
+          <div class="step-indicator" id="step3-role"></div>
+        </div>
+      </div>
+      <form method="POST" action="/login" id="login-form">
+        <input type="hidden" name="username" id="hidden-username">
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Contraseña</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" name="password" id="password-input" class="form-control" placeholder="Ingresa tu contraseña" required autofocus>
+            <button class="btn btn-outline-secondary" type="button" onclick="togglePwd()"><i class="bi bi-eye" id="eye-icon"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-login w-100 text-white" id="btn-submit">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar
+        </button>
+        <div class="text-center mt-3">
+          <a href="#" class="small text-muted" onclick="openForgotModal();return false"><i class="bi bi-key me-1"></i>¿Olvidaste tu contraseña?</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Recuperar contraseña -->
+<div class="modal fade" id="modalForgot" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+    <div class="modal-content" style="border-radius:16px;overflow:hidden;border:none;box-shadow:0 16px 48px rgba(0,0,0,.3)">
+
+      <div style="background:linear-gradient(135deg,#1a2540,#2d3f6e);padding:28px 28px 20px;text-align:center">
+        <div style="width:60px;height:60px;background:rgba(255,255,255,.15);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px">
+          <i class="bi bi-shield-lock-fill" style="font-size:1.6rem;color:#fff"></i>
+        </div>
+        <h5 style="color:#fff;margin:0;font-weight:700">Recuperar contraseña</h5>
+        <p style="color:#a9c0f0;margin:6px 0 0;font-size:.82rem">Verifica tu identidad para continuar</p>
+      </div>
+
+      <div style="padding:24px 28px">
+        <p class="text-muted small mb-4" style="line-height:1.6">
+          Ingresa tu <strong>nombre de usuario</strong> y el <strong>correo registrado</strong> en tu cuenta. Deben coincidir exactamente con los datos guardados en el sistema.
+        </p>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Usuario</label>
+          <div class="input-group">
+            <span class="input-group-text" style="background:#f8f9fa;border:1.5px solid #dee2e6;border-right:none;border-radius:10px 0 0 10px">
+              <i class="bi bi-person text-muted"></i>
+            </span>
+            <input type="text" id="fg-username" class="form-control"
+                   style="border:1.5px solid #dee2e6;border-left:none;border-radius:0 10px 10px 0;padding:11px 14px"
+                   placeholder="Tu nombre de usuario" autocomplete="username">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label small fw-semibold">Correo electrónico registrado</label>
+          <div class="input-group">
+            <span class="input-group-text" style="background:#f8f9fa;border:1.5px solid #dee2e6;border-right:none;border-radius:10px 0 0 10px">
+              <i class="bi bi-envelope text-muted"></i>
+            </span>
+            <input type="email" id="fg-email" class="form-control"
+                   style="border:1.5px solid #dee2e6;border-left:none;border-radius:0 10px 10px 0;padding:11px 14px"
+                   placeholder="correo@ejemplo.com" autocomplete="email"
+                   onkeydown="if(event.key==='Enter') sendForgot()">
+          </div>
+        </div>
+
+        <div id="fg-alert" class="d-none mb-3"></div>
+
+        <!-- Estado: correo enviado -->
+        <div id="fg-success" class="d-none mb-3" style="background:linear-gradient(135deg,#f0f7ff,#e8f0fe);border:1.5px solid #b8d4f8;border-radius:12px;padding:18px;text-align:center">
+          <div style="width:48px;height:48px;background:#0d6efd;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px">
+            <i class="bi bi-envelope-check-fill" style="color:#fff;font-size:1.3rem"></i>
+          </div>
+          <p class="fw-semibold text-dark mb-1" style="font-size:.95rem">¡Correo enviado!</p>
+          <p class="text-muted small mb-1">Enlace de recuperación enviado a:</p>
+          <span id="fg-masked-email" style="font-size:1rem;font-weight:700;color:#0d6efd;display:block;margin:4px 0 8px"></span>
+          <p class="text-muted mb-0" style="font-size:.75rem"><i class="bi bi-clock me-1"></i>Válido por <strong>1 hora</strong> · Revisa también tu <strong>spam</strong></p>
+        </div>
+
+        <button id="fg-btn" class="btn w-100 fw-bold" onclick="sendForgot()"
+                style="background:linear-gradient(135deg,#0d6efd,#0a58ca);color:#fff;border:none;border-radius:12px;padding:13px;font-size:.95rem">
+          <i class="bi bi-send me-2"></i>Verificar y enviar correo
+        </button>
+
+        <div class="text-center mt-3">
+          <button type="button" class="btn btn-link btn-sm text-muted p-0" data-bs-dismiss="modal" style="font-size:.82rem;text-decoration:none">
+            <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('error'))  document.getElementById('error-msg').classList.remove('d-none');
+  if (params.has('logout')) document.getElementById('logout-msg').classList.remove('d-none');
+
+  const roleColors = {
+    ADMIN:      { color: '#dc3545', bg: '#fff5f5', cls: 'selected-admin',      btnClass: 'btn-danger',   label: 'Administrador' },
+    SUPERVISOR: { color: '#fd7e14', bg: '#fff8f0', cls: 'selected-supervisor', btnClass: 'btn-warning',  label: 'Supervisor' },
+    VENDEDOR:   { color: '#0d6efd', bg: '#f0f4ff', cls: 'selected-vendedor',   btnClass: 'btn-primary',  label: 'Vendedor' },
+  };
+
+  let allUsers = [];
+  let selectedRole = null;
+  let selectedUser = null;
+
+  // Cargar usuarios desde endpoint público
+  fetch('/api/auth/users-public')
+    .then(r => r.ok ? r.json() : [])
+    .then(data => { allUsers = data; })
+    .catch(() => { allUsers = []; });
+
+  function showStep(n) {
+    document.querySelectorAll('.step').forEach((s,i) => s.classList.toggle('active', i+1 === n));
+  }
+
+  function selectRole(role, el) {
+    selectedRole = role;
+    document.querySelectorAll('.role-card').forEach(c => c.className = 'role-card');
+    el.classList.add(roleColors[role].cls);
+    renderUserList(role);
+    showStep(2);
+    const cfg = roleColors[role];
+    document.getElementById('step2-title').textContent = `Selecciona tu usuario — ${cfg.label}`;
+  }
+
+  function renderUserList(role) {
+    const cfg = roleColors[role];
+    const filtered = allUsers.filter(u => u.role === role);
+    const container = document.getElementById('users-list');
+    const noMsg = document.getElementById('no-users-msg');
+    if (filtered.length === 0) {
+      container.innerHTML = '';
+      noMsg.classList.remove('d-none');
+      return;
+    }
+    noMsg.classList.add('d-none');
+    container.innerHTML = filtered.map(u => `
+      <button type="button" class="user-btn" onclick="selectUser('${u.username}','${u.fullName}','${role}')"
+        style="--role-color:${cfg.color};--role-bg:${cfg.bg}">
+        <div class="user-avatar" style="background:${cfg.color}">${u.fullName.charAt(0).toUpperCase()}</div>
+        <div>
+          <div class="fw-semibold" style="font-size:.9rem">${u.fullName}</div>
+          <div class="text-muted" style="font-size:.75rem">@${u.username}</div>
+        </div>
+        <i class="bi bi-chevron-right ms-auto text-muted"></i>
+      </button>`).join('');
+  }
+
+  function selectUser(username, fullName, role) {
+    selectedUser = username;
+    const cfg = roleColors[role];
+    document.getElementById('hidden-username').value = username;
+    document.getElementById('step3-name').textContent = fullName;
+    document.getElementById('step3-role').textContent = cfg.label;
+    const btn = document.getElementById('btn-submit');
+    btn.className = `btn btn-login w-100 text-white ${cfg.btnClass}`;
+    showStep(3);
+    setTimeout(() => document.getElementById('password-input').focus(), 100);
+  }
+
+  function goBack() { showStep(1); }
+  function goBackToUsers() { showStep(2); }
+
+  function togglePwd() {
+    const inp = document.getElementById('password-input');
+    const icon = document.getElementById('eye-icon');
+    if (inp.type === 'password') { inp.type = 'text'; icon.className = 'bi bi-eye-slash'; }
+    else { inp.type = 'password'; icon.className = 'bi bi-eye'; }
+  }
+
+  // Si viene de ?error, mostrar directamente paso 3 si hay usuario previo
+  if (params.has('error') && params.get('user')) {
+    document.getElementById('hidden-username').value = params.get('user');
+  }
+
+  let forgotModal = null;
+  function openForgotModal() {
+    document.getElementById('fg-username').value = selectedUser || '';
+    document.getElementById('fg-email').value = '';
+    document.getElementById('fg-alert').className = 'd-none';
+    document.getElementById('fg-alert').textContent = '';
+    document.getElementById('fg-success').classList.add('d-none');
+    const btn = document.getElementById('fg-btn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-send me-2"></i>Verificar y enviar correo';
+    btn.style.background = 'linear-gradient(135deg,#0d6efd,#0a58ca)';
+    if (!forgotModal) forgotModal = new bootstrap.Modal(document.getElementById('modalForgot'));
+    forgotModal.show();
+    setTimeout(() => {
+      const u = document.getElementById('fg-username');
+      (u.value ? document.getElementById('fg-email') : u).focus();
+    }, 300);
+  }
+
+  async function sendForgot() {
+    const username = document.getElementById('fg-username').value.trim();
+    const email    = document.getElementById('fg-email').value.trim();
+    const alertEl  = document.getElementById('fg-alert');
+
+    const showErr = (msg) => {
+      alertEl.className = 'alert alert-danger py-2 small rounded-3 mb-3';
+      alertEl.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>' + msg;
+      alertEl.classList.remove('d-none');
+    };
+
+    if (!username) { showErr('Ingresa tu nombre de usuario.'); return; }
+    if (!email)    { showErr('Ingresa el correo registrado en tu cuenta.'); return; }
+
+    const btn = document.getElementById('fg-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verificando...';
+
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        alertEl.classList.add('d-none');
+        document.getElementById('fg-masked-email').textContent = data.maskedEmail;
+        document.getElementById('fg-success').classList.remove('d-none');
+        btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Correo enviado';
+        btn.style.background = 'linear-gradient(135deg,#198754,#146c43)';
+      } else {
+        showErr(data.message || 'Error al enviar el correo.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-send me-2"></i>Verificar y enviar correo';
+        btn.style.background = 'linear-gradient(135deg,#0d6efd,#0a58ca)';
+      }
+    } catch(e) {
+      showErr('Error de conexión. Verifica que el servidor esté activo.');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-send me-2"></i>Verificar y enviar correo';
+      btn.style.background = 'linear-gradient(135deg,#0d6efd,#0a58ca)';
+    }
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

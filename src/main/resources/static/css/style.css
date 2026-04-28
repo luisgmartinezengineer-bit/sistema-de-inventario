@@ -1,0 +1,193 @@
+:root {
+  --sidebar-bg: #1a2540;
+  --sidebar-hover: #273352;
+  --sidebar-text: #9aaac8;
+  --sidebar-active-text: #ffffff;
+  --sidebar-width: 220px;
+  --accent: #4f8ef7;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #f0f2f7;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: var(--sidebar-width);
+  min-height: 100vh;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  padding: 28px 20px 20px;
+  text-align: center;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-link {
+  color: var(--sidebar-text) !important;
+  padding: 11px 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  border-left: 3px solid transparent;
+  transition: all 0.18s;
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  background: var(--sidebar-hover);
+  color: #fff !important;
+  border-left-color: var(--accent);
+}
+
+.sidebar-link.active {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-active-text) !important;
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── SIDEBAR SUB-ITEMS ── */
+.sidebar-group-toggle {
+  justify-content: flex-start;
+}
+
+.sidebar-group-toggle .chevron {
+  margin-left: auto;
+  transition: transform 0.2s;
+  font-size: 0.7rem;
+}
+
+.sidebar-group-toggle[aria-expanded="true"] .chevron {
+  transform: rotate(-180deg);
+}
+
+.sidebar-group-toggle.has-active {
+  color: #fff !important;
+}
+
+#ventas-submenu {
+  background: rgba(0,0,0,0.18);
+}
+
+.sidebar-sublink {
+  color: var(--sidebar-text) !important;
+  padding: 8px 20px 8px 44px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.85rem;
+  border-left: 3px solid transparent;
+  transition: all 0.18s;
+  text-decoration: none;
+}
+
+.sidebar-sublink:hover {
+  background: var(--sidebar-hover);
+  color: #fff !important;
+  border-left-color: var(--accent);
+}
+
+.sidebar-sublink.active {
+  background: var(--sidebar-hover);
+  color: #fff !important;
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── CLICKABLE ROWS ── */
+tr.clickable-row {
+  cursor: pointer;
+}
+
+tr.clickable-row:hover td {
+  background: #f0f4ff;
+}
+
+/* ── STAT CARDS ── */
+.stat-card {
+  border-radius: 14px;
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.10) !important;
+}
+
+.stat-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── TABLES ── */
+.table th {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6c757d;
+}
+
+/* ── STOCK BADGES ── */
+.badge-low {
+  background: #fff3cd;
+  color: #856404;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.badge-ok {
+  background: #d1e7dd;
+  color: #0a3622;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* ── SMALL BUTTONS ── */
+.btn-xs {
+  padding: 2px 7px;
+  font-size: 0.75rem;
+  border-radius: 5px;
+}
+
+/* ── CARDS ── */
+.card {
+  border-radius: 12px;
+}
+
+.card-header {
+  border-radius: 12px 12px 0 0 !important;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+}
+
+/* ── MAIN CONTENT ── */
+#main-content {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.navbar {
+  border-bottom: 1px solid #e9ecef;
+}
